@@ -2182,6 +2182,7 @@ function showOverview() {
   saveState();
   updateSidebar();
   renderOverview();
+  history.replaceState(null, '', '#');
 }
 
 function renderOverview() {
@@ -2242,6 +2243,8 @@ function navigateTo(idx) {
   saveState();
   updateSidebar();
   renderModule(idx);
+  history.replaceState(null, '', '#module-' + MODULES[idx].num);
+  window.scrollTo(0, 0);
 }
 
 function switchTab(tab) {
@@ -2546,6 +2549,18 @@ navigateTo = function(idx) { _origNavigateTo(idx); closeMobileMenu(); };
 // ============================================================
 // INIT
 // ============================================================
+
+// Restore module from URL hash (e.g. #module-03)
+(function() {
+  const hash = location.hash;
+  const m = hash.match(/^#module-(\d+)$/);
+  if (m) {
+    const num = m[1];
+    const idx = MODULES.findIndex(mod => mod.num === num);
+    if (idx >= 0) { state.currentModule = idx; state.currentTab = 'concept'; }
+  }
+})();
+
 updateSidebar();
 updateGlobalProgress();
 if (state.currentModule >= 0) {
