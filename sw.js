@@ -1,4 +1,4 @@
-const CACHE = 'memory-science-v2';
+const CACHE = 'memory-science-v3';
 const ASSETS = [
   '/memory-science-app/',
   '/memory-science-app/index.html',

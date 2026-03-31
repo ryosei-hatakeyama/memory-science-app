@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Memory Science for Agent Design</title>
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.svg">
 <meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Memory Science for Agent Design</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
@@ -64,18 +64,6 @@ tailwind.config = {
     .split-btn { display: inline-flex !important; }
   }
   @media (max-width: 1024px) { .split-btn { display: none !important; } }
-  .split-view { display: none; }
-  @media (min-width: 1024px) {
-    .split-view-active .main-content { max-width: 100%; }
-    .split-view-active .main-content > div { max-width: 100%; padding-left: 2rem; padding-right: 2rem; }
-    .split-view { display: none; }
-    .split-view.active { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-    .split-pane { max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 8px; }
-    .split-pane::-webkit-scrollbar { width: 4px; }
-    .split-pane::-webkit-scrollbar-thumb { background: #e2ddd8; border-radius: 2px; }
-    .split-btn { display: inline-flex !important; }
-  }
-  @media (max-width: 1024px) { .split-btn { display: none !important; } }
   .video-card { border: 1px solid #e2ddd8; border-radius: 12px; overflow: hidden; background: #1a1a2e; cursor: pointer; transition: all 0.2s; }
   .video-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.15); transform: translateY(-1px); }
   .video-card video { width: 100%; display: block; }
@@ -117,32 +105,6 @@ tailwind.config = {
   .mobile-bottom-nav button.active { color: #e07a5f; }
   .print-hide { }
   @media print { .print-hide { display: none; } }
-  /* Sync indicator */
-  .sync-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-  .sync-dot.synced { background: #4a9e6b; }
-  .sync-dot.syncing { background: #d4a03c; animation: pulse 1s infinite; }
-  .sync-dot.offline { background: #d44; }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-  /* Follow-up UI */
-  .followup-card { border: 1px solid #e2ddd8; border-radius: 12px; padding: 16px; margin-top: 12px; background: #fefdfb; }
-  .followup-card.from-claude { border-left: 4px solid #e07a5f; }
-  .followup-card.from-local { border-left: 4px solid #4a9e6b; }
-  .followup-textarea { width: 100%; min-height: 60px; border: 1px solid #e2ddd8; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; resize: vertical; background: white; transition: border-color 0.2s; }
-  .followup-textarea:focus { border-color: #e07a5f; outline: none; }
-  /* Comprehension indicator */
-  .comp-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-  .comp-dot.green { background: #4a9e6b; }
-  .comp-dot.yellow { background: #d4a03c; }
-  .comp-dot.red { background: #d44; }
-  /* Tools menu */
-  .tools-menu { position: relative; }
-  .tools-dropdown { display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #e2ddd8; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); min-width: 200px; z-index: 70; padding: 4px; }
-  .tools-dropdown.open { display: block; }
-  .tools-dropdown button { display: block; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; font-size: 0.8rem; border-radius: 8px; cursor: pointer; }
-  .tools-dropdown button:hover { background: #f0edea; }
-  /* API settings modal */
-  .modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 16px; }
-  .modal-box { background: white; border-radius: 16px; padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
 </style>
 </head>
 <body class="font-sans text-ink min-h-screen">
@@ -159,26 +121,11 @@ tailwind.config = {
       <h1 class="text-sm font-bold tracking-tight sm:text-base">記憶の科学</h1>
     </div>
     <div class="flex items-center gap-4">
-      <div class="text-sm text-muted hidden sm:block">
+      <div class="text-sm text-muted">
         進捗: <span id="globalProgress" class="font-mono font-medium text-ink">0</span>/16
       </div>
-      <div class="w-32 h-2 bg-subtle rounded-full overflow-hidden hidden sm:block">
+      <div class="w-32 h-2 bg-subtle rounded-full overflow-hidden">
         <div id="globalProgressBar" class="h-full bg-accent rounded-full progress-fill" style="width:0%"></div>
-      </div>
-      <div id="syncIndicator" class="flex items-center gap-1.5 text-xs text-muted" title="同期ステータス">
-        <span class="sync-dot offline"></span>
-        <span class="hidden sm:inline" id="syncLabel">オフライン</span>
-      </div>
-      <div class="tools-menu">
-        <button onclick="toggleToolsMenu()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-subtle">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="3.5" r="1.5"/><circle cx="9" cy="9" r="1.5"/><circle cx="9" cy="14.5" r="1.5"/></svg>
-        </button>
-        <div id="toolsDropdown" class="tools-dropdown">
-          <button onclick="showApiSettings()">🔑 API 設定</button>
-          <button onclick="exportNotes()">📥 ノート書き出し</button>
-          <button onclick="showGlossary()">📖 用語集</button>
-          <button onclick="forceSyncNow()">🔄 手動同期</button>
-        </div>
       </div>
     </div>
   </div>
@@ -186,11 +133,6 @@ tailwind.config = {
 
 <!-- Sidebar -->
 <nav class="sidebar fixed top-14 left-0 bottom-0 w-64 bg-paper border-r border-border overflow-y-auto p-4 print-hide">
-  <div class="mb-4">
-    <a href="#" onclick="showOverview(); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5 font-medium">
-      📋 全体概要
-    </a>
-  </div>
   <div class="mb-4">
     <div class="text-xs font-bold text-muted uppercase tracking-widest mb-2">第1部: 認知科学</div>
     <a href="#" onclick="navigateTo(0); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="0">
@@ -245,11 +187,17 @@ tailwind.config = {
       <span class="opacity-50 font-mono mr-2">14</span> 記憶の設計原則
     </a>
     <a href="#" onclick="navigateTo(14); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="14">
-      <span class="opacity-50 font-mono mr-2">15</span> マルチエージェント記憶
+      <span class="opacity-50 font-mono mr-2">15</span> HP プロダクト応用
+    </a>
+    <a href="#" onclick="navigateTo(15); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="15">
+      <span class="opacity-50 font-mono mr-2">16</span> マルチエージェント記憶
     </a>
   </div>
   <div class="border-t border-border pt-3">
     <div class="text-xs font-bold text-muted uppercase tracking-widest mb-2">ツール</div>
+    <a href="#" onclick="showOverview(); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5">
+      📋 全体概要
+    </a>
     <a href="#" onclick="showGlossary(); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5">
       📖 用語集
     </a>
@@ -393,6 +341,28 @@ const MODULES = [
       label: '確認テスト',
       content: 'quiz'
     },
+    connect: {
+      label: '実務接続',
+      content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<p class="text-muted mb-8">学んだ概念を、あなたの実際の仕事に結びつけます。</p>
+
+<div class="bg-subtle p-6 rounded-xl mb-8">
+  <h3 class="font-bold mb-3">🏥 HP プロダクトへの応用</h3>
+  <p class="text-sm mb-4">MediNavi で医師が患者の情報を「記憶」するプロセスを3段階モデルで分析してみましょう:</p>
+  <ul class="text-sm space-y-2">
+    <li><strong>符号化の課題</strong>: 医師が診察中に得た情報のうち、システムに記録される（符号化される）のはどの程度？カルテに書かれない「印象」「文脈」は失われていないか？</li>
+    <li><strong>保持の課題</strong>: 記録された情報は、適切な形式で保持されているか？構造化データと自由テキストの混在は検索を阻害しないか？</li>
+    <li><strong>検索の課題</strong>: 次の診察時に、過去の文脈を効率よく「想起」できる UI になっているか？</li>
+  </ul>
+</div>
+
+<div>
+  <label class="block font-medium mb-2">あなたの HP プロダクトで、3段階のうちどこが一番のボトルネックだと思いますか？理由と改善アイデアを書いてみてください。</label>
+  <textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m0-connect" placeholder="符号化/保持/検索、どこに一番課題がある？"></textarea>
+</div>
+`
+    }
   },
   quiz: [
     {
@@ -547,6 +517,27 @@ const MODULES = [
 `
     },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: {
+      label: '実務接続',
+      content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8">
+  <h3 class="font-bold mb-3">🏥 HP プロダクトへの応用</h3>
+  <p class="text-sm mb-4">医師が患者を診る場面で、異なる記憶タイプがどう機能しているか考えてみましょう:</p>
+  <ul class="text-sm space-y-2">
+    <li><strong>ワーキングメモリ</strong>: 今この瞬間の患者の訴え、バイタル、表情を統合処理</li>
+    <li><strong>エピソード記憶</strong>: 「前回の診察で〇〇と言っていた」「先月検査値が急変した」</li>
+    <li><strong>意味記憶</strong>: 医学知識、ガイドライン、薬の副作用情報</li>
+    <li><strong>手続き記憶</strong>: 問診の進め方、触診の手技、カルテの書き方</li>
+  </ul>
+  <p class="text-sm mt-4">AI がこれらのどの記憶を支援できると、医師の意思決定の質が最も上がるか？</p>
+</div>
+<div>
+  <label class="block font-medium mb-2">MediNavi が医師の「記憶」を補完するとしたら、4種類のうちどこから始めるべきですか？その理由を書いてみてください。</label>
+  <textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m1-connect" placeholder="エピソード記憶の補完が最優先だと思う。なぜなら..."></textarea>
+</div>
+`
+    }
   },
   quiz: [
     {
@@ -685,6 +676,25 @@ const MODULES = [
 `
     },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: {
+      label: '実務接続',
+      content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8">
+  <h3 class="font-bold mb-3">🤖 Claude Code メモリ設計への示唆</h3>
+  <p class="text-sm mb-4">あなたの6層設計を、この Module で学んだ原理で再評価してみましょう:</p>
+  <ul class="text-sm space-y-2">
+    <li><strong>忘却曲線 → L3/L5 の減衰ポリシー</strong>: tasks.md の完了タスクの7日ルール、context-log の3ヶ月ルールは、記憶タイプに応じた粒度になっているか？</li>
+    <li><strong>符号化特異性 → メタデータ設計</strong>: 記憶にどんな文脈タグ（プロジェクト名、関係者、感情的重要度）を付けると想起精度が上がるか？</li>
+    <li><strong>テスト効果 → L1 ランキング</strong>: 「よく参照するファイル」を記録する仕組みは、まさに「何を想起しているか」のトラッキング</li>
+  </ul>
+</div>
+<div>
+  <label class="block font-medium mb-2">現在の6層設計で「忘却」が適切に設計されていない部分はどこですか？改善案も書いてみてください。</label>
+  <textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m2-connect" placeholder="L4の組織知は永続的だが、実は陳腐化しているものがある..."></textarea>
+</div>
+`
+    }
   },
   quiz: [
     {
@@ -785,6 +795,12 @@ const MODULES = [
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m3b-r3" placeholder="関連度の自動強化、クラスタリング、リンクの追加..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: { label: '実務接続', content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8"><h3 class="font-bold mb-3">🤖 Claude Code の「睡眠」設計</h3>
+<p class="text-sm">あなたの heartbeat スクリプト（金曜13時の自動チェック）は、まさに「睡眠中の記憶固定化」の実装。これを神経科学の知見で改善しましょう。</p></div>
+<div><label class="block font-medium mb-2">heartbeat の処理を「記憶固定化」の観点で再設計してください。何を統合し、何を剪定し、何を昇格させるべき？</label>
+<textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m3b-connect" placeholder="統合: L5の類似エントリをマージ\n剪定: 3ヶ月未アクセスのL3エントリ\n昇格: 3回以上参照されたL5→L4へ"></textarea></div>` }
   },
   quiz: [
     { question: '海馬の記憶における役割として最も適切なのはどれ？', options: ['記憶の長期保存場所', '記憶のインデックス（分散保存された記憶を結びつける）', '手続き記憶の処理', '感覚情報の入力処理'], correct: 1, explanation: '海馬は記憶の「インデックス」。記憶の本体は大脳皮質に分散保存され、海馬がそれらの断片を結びつける。MEMORY.md の L1 参照リストに対応。' },
@@ -902,6 +918,25 @@ const MODULES = [
 `
     },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: {
+      label: '実務接続',
+      content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8">
+  <h3 class="font-bold mb-3">🏥 HP プロダクトへの応用</h3>
+  <p class="text-sm mb-4">MediNavi が LLM を使って医師を支援する場合、コンテキストウィンドウの「容量制限」はUX設計に直結します:</p>
+  <ul class="text-sm space-y-2">
+    <li><strong>何をコンテキストに載せるか？</strong> 患者の全カルテ？直近3回の診療録？関連するガイドライン？</li>
+    <li><strong>優先順位はどう決める？</strong> 「この患者にとって今最も関連性の高い情報」を選ぶロジックが必要</li>
+    <li><strong>載せきれない情報はどうする？</strong> → これが次の Module（RAG）のテーマ</li>
+  </ul>
+</div>
+<div>
+  <label class="block font-medium mb-2">医師が患者を診る瞬間に「コンテキストウィンドウに載せるべき情報」のTop 5を、優先度順に挙げてみてください。</label>
+  <textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m3-connect" placeholder="1. 現在の主訴と症状\n2. 直近の検査結果\n3. ..."></textarea>
+</div>
+`
+    }
   },
   quiz: [
     {
@@ -1046,6 +1081,26 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 `
     },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: {
+      label: '実務接続',
+      content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8">
+  <h3 class="font-bold mb-3">🏥 HP プロダクトへの応用</h3>
+  <p class="text-sm mb-4">MediNavi に RAG を実装する場合の設計判断:</p>
+  <ul class="text-sm space-y-2">
+    <li><strong>何を Index に含めるか？</strong> カルテ、ガイドライン、薬剤情報、過去の類似症例...</li>
+    <li><strong>チャンキング戦略</strong>: 診療録は「SOAP」の各セクションで分割？問題リストで分割？</li>
+    <li><strong>検索の手がかり</strong>: 医師の入力（症状、疑い病名）をクエリとして、何を検索するか？</li>
+    <li><strong>プライバシー</strong>: 患者データをエンベディングにしてベクトル DB に保存する際のセキュリティ要件</li>
+  </ul>
+</div>
+<div>
+  <label class="block font-medium mb-2">MediNavi で RAG を実装するとしたら、最初にベクトル化すべきデータソースは何ですか？その理由と、チャンキング戦略も考えてみてください。</label>
+  <textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m4-connect" placeholder="まずはガイドラインから。理由は...チャンキングは疾患別+推奨グレード別..."></textarea>
+</div>
+`
+    }
   },
   quiz: [
     {
@@ -1207,6 +1262,40 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 `
     },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: {
+      label: '実務接続',
+      content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8">
+  <h3 class="font-bold mb-3">🏥 HP プロダクト + 🤖 Claude Code 統合設計</h3>
+  <p class="text-sm mb-4">Phase 1-2 の学びを統合して、「記憶を持つ AI エージェント」の設計原則を言語化しましょう:</p>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+    <div class="border border-border p-3 rounded-lg">
+      <div class="font-bold mb-1">Claude Code の次の進化</div>
+      <ul class="text-muted space-y-1">
+        <li>Reflection の自動化</li>
+        <li>Importance スコアリング</li>
+        <li>コンテキストメタデータ強化</li>
+        <li>忘却の TTL 設計</li>
+      </ul>
+    </div>
+    <div class="border border-border p-3 rounded-lg">
+      <div class="font-bold mb-1">HP プロダクトの記憶 UX</div>
+      <ul class="text-muted space-y-1">
+        <li>患者のエピソード記憶</li>
+        <li>医学知識の意味記憶</li>
+        <li>診療パターンの手続き記憶</li>
+        <li>文脈に応じた想起</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div>
+  <label class="block font-medium mb-2">Phase 1-2 の全てを踏まえて、「記憶を持つ AI エージェント」の設計原則を5つ、自分の言葉で書いてみてください。</label>
+  <textarea class="reflection-textarea w-full h-48 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m5-connect" placeholder="1. 記憶は符号化・保持・検索の3段階で設計する\n2. エピソード記憶と意味記憶を区別して保存する\n3. ...\n4. ...\n5. ..."></textarea>
+</div>
+`
+    }
   },
   quiz: [
     {
@@ -1289,6 +1378,14 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m7-r3" placeholder="医師が AI の記憶を信頼するには..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: { label: '実務接続', content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8">
+  <h3 class="font-bold mb-3">🤖 Claude Code メモリの次の進化</h3>
+  <p class="text-sm">最新論文の知見を踏まえ、あなたの6層設計の進化方向を考えましょう。Mem0 の自律管理、LangMem のセマンティック/エピソディック分離、Letta の3層構造、Claude Memory の透明性設計。</p>
+</div>
+<div><label class="block font-medium mb-2">6層設計の v2.0 を設計するとしたら、何を変えますか？最新論文から取り入れるべきアイデアを3つ挙げてください。</label>
+<textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m7-connect" placeholder="1. 重要度スコアリングの自動化\n2. ..."></textarea></div>` }
   },
   quiz: [
     { question: '2024-25年のエージェント記憶研究の3つの共通トレンドに含まれないのはどれ？', options: ['記憶の自律管理', 'マルチレイヤー記憶', '記憶の完全な自動化（ユーザー制御なし）', '透明性と制御'], correct: 2, explanation: '最新トレンドでは「透明性と制御」が重視されている。ユーザーが記憶を確認・修正・削除できることが信頼構築の基盤。完全自動化はむしろアンチパターン。' },
@@ -1412,12 +1509,20 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 <div class="space-y-8">
   <div><label class="block font-medium mb-2">Q1. あなたの Claude Code 体験は、GUI/Conversational/Agentic のどこに位置しますか？具体例で説明してください。</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m8-r1" placeholder="タスク管理は Agentic に近い（自律的に提案）、コード編集は..."></textarea></div>
-  <div><label class="block font-medium mb-2">Q2. 「Progressive Autonomy」をあなたのプロダクトで実装するとしたら、どんなグラデーションが考えられますか？</label>
+  <div><label class="block font-medium mb-2">Q2. 「Progressive Autonomy」を MediNavi で実装するとしたら、どんなグラデーションが考えられますか？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m8-r2" placeholder="初期: 情報提示のみ → 中期: 推薦付き → 成熟期: 自動実行+事後確認"></textarea></div>
   <div><label class="block font-medium mb-2">Q3. 従来の GUI デザインスキルのうち、Agentic UX でも活きるものと、新たに必要なスキルは？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m8-r3" placeholder="活きる: 情報設計、ユーザーリサーチ。新規: 委任設計、信頼校正..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: { label: '実務接続', content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8">
+  <h3 class="font-bold mb-3">🏥 HP プロダクトのパラダイムシフト</h3>
+  <p class="text-sm">MediNavi を「操作型→委任型」に進化させるとき、5つの設計原則をどう適用しますか？</p>
+</div>
+<div><label class="block font-medium mb-2">MediNavi の「Agentic 化」のロードマップを、5原則に沿って書いてみてください。</label>
+<textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m8-connect" placeholder="Phase 1（Transparency）: AI の推論根拠を可視化\nPhase 2..."></textarea></div>` }
   },
   quiz: [
     { question: 'Shneiderman の HCAI の主張として正しいのはどれ？', options: ['自動化と人間の制御はトレードオフ', '自動化と人間の制御は独立した軸であり両方を同時に高められる', '完全自動化が最終目標', '人間の介入は最小限にすべき'], correct: 1, explanation: 'Shneiderman は「高い自動化 + 高い制御」の両立を主張。自動化を上げても、適切な設計により人間の制御を維持・強化できる。' },
@@ -1485,12 +1590,20 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 <div class="space-y-8">
   <div><label class="block font-medium mb-2">Q1. あなた自身の Claude Code 利用で「過信」「過小信頼」の例はありますか？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-r1" placeholder="過信: コード生成をそのまま受け入れた。過小信頼: 記憶の提案を無視した..."></textarea></div>
-  <div><label class="block font-medium mb-2">Q2. 「記憶の出典表示」をあなたのプロダクトで実装するとしたら、どんな UI が考えられますか？</label>
-  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-r2" placeholder="推薦の横に小さく「2024/3/15 の情報に基づく」と表示..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 「記憶の出典表示」を HP プロダクトで実装するとしたら、どんな UI が考えられますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-r2" placeholder="推薦の横に小さく「2024/3/15 の診察記録に基づく」と表示..."></textarea></div>
   <div><label class="block font-medium mb-2">Q3. 記憶を持つ AI の「過信」は、記憶を持たない AI の「過信」とどう違いますか？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-r3" placeholder="記憶がある分「この患者のことをわかっている」と思い込むリスク..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: { label: '実務接続', content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8">
+  <h3 class="font-bold mb-3">🏥 MediNavi の信頼設計</h3>
+  <p class="text-sm">医師が MediNavi の「記憶に基づく推薦」を適切に信頼するための UI を設計してください。</p>
+</div>
+<div><label class="block font-medium mb-2">信頼設計フレームワークの4要素（可視化・不確実性・出典・Override）を MediNavi に具体的に適用した UI を記述してください。</label>
+<textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-connect" placeholder="可視化: 患者カードに「AI記憶サマリー」セクション\n不確実性: 確信度バー..."></textarea></div>` }
   },
   quiz: [
     { question: 'Lee & See の信頼モデルで、AI の「判断プロセスの透明性」が支えるのはどの信頼要素？', options: ['Performance（能力）', 'Process（プロセス）', 'Purpose（意図）', 'Precision（精度）'], correct: 1, explanation: 'Process trust はシステムの判断プロセスへの理解と信頼。AI がどうやって結論に至ったかが見えると Process trust が高まる。' },
@@ -1561,6 +1674,14 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m10-r3" placeholder="記憶があると: 文脈再構築の負荷が消える。一方で記憶管理の負荷が新たに生まれる..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: { label: '実務接続', content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8">
+  <h3 class="font-bold mb-3">🏥 MediNavi の認知負荷設計</h3>
+  <p class="text-sm">医師の診療における認知負荷マップを作り、AI が引き受けるべき負荷を特定してください。</p>
+</div>
+<div><label class="block font-medium mb-2">診察の各フェーズ（問診→検査→診断→治療方針→説明）で、どの認知負荷を AI が引き受け、どれを医師に残すべきですか？</label>
+<textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m10-connect" placeholder="問診: 記憶負荷を AI が引き受け（過去の訴えを自動表示）\n検査: 検索負荷を..."></textarea></div>` }
   },
   quiz: [
     { question: 'Sweller の CLT で、UI 改善で最も効果的に削減できる負荷はどれ？', options: ['内在的負荷', '外在的負荷', '本質的負荷', '全て同等'], correct: 1, explanation: '外在的負荷は情報提示の不備に起因するため、UI/UX 設計で直接削減できる。内在的負荷はタスク固有、本質的負荷は削減すべきでない。' },
@@ -1626,6 +1747,14 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m11-r3" placeholder="各職種が記録した情報を AI が統合し、アクセス権限を分けて..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: { label: '実務接続', content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8">
+  <h3 class="font-bold mb-3">🏥 医師-AI の Common Ground 設計</h3>
+  <p class="text-sm">MediNavi で医師と AI の Shared Mental Model を構築する仕組みを設計してください。</p>
+</div>
+<div><label class="block font-medium mb-2">医師が「この AI は自分の患者のことをどこまで理解しているか」を常に把握できる UI を設計してください。4つの Disclosure パターンのどれを使いますか？</label>
+<textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m11-connect" placeholder="患者カードのヘッダーに「AI 記憶範囲」アイコン\nクリックで Memory Dashboard..."></textarea></div>` }
   },
   quiz: [
     { question: 'Clark の Common Ground Theory で、Grounding の本質はどれ？', options: ['情報を一方的に伝えること', '対話を通じて共有知識を構築・更新するプロセス', 'データベースの共有', '全情報の公開'], correct: 1, explanation: 'Grounding は対話を通じた相互確認のプロセス。「伝えた」だけでなく「理解された」ことの確認まで含む。' },
@@ -1743,6 +1872,12 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m12-r3" placeholder="行動パターンの記憶、スケジュールの記憶、過去の類似状況の記憶..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: { label: '実務接続', content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8"><h3 class="font-bold mb-3">🏥 MediNavi の記憶 UX パターン</h3>
+<p class="text-sm">6パターンを MediNavi に具体的にマッピングしてください。</p></div>
+<div><label class="block font-medium mb-2">MediNavi で6パターンそれぞれをどう実現しますか？優先順位も含めて。</label>
+<textarea class="reflection-textarea w-full h-48 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m12-connect" placeholder="優先1: Continuity — 患者の診療コンテキスト自動再構築\n優先2: Accountability — 推薦の根拠表示\n..."></textarea></div>` }
   },
   quiz: [
     { question: '記憶 UX パターンの「Anticipation」の認知科学的基盤はどれ？', options: ['エピソード記憶のみ', '展望的記憶（未来の行動の記憶）+ 文脈手がかり', '手続き記憶', '感覚記憶'], correct: 1, explanation: '予測的支援は「この文脈ではユーザーが次に○○を必要とする」という展望的記憶と、現在の文脈による想起の組み合わせ。' },
@@ -1841,12 +1976,18 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 <div class="space-y-8">
   <div><label class="block font-medium mb-2">Q1. あなたの6層設計を4次元フレームワークで評価してください。各次元で何が足りていて何が足りない？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m13-r1" placeholder="符号化: 手動でメタデータ付与 → 自動化が必要\n保持: L2-L5で分離済み → OK\n忘却: TTLルールあるが粗い\n想起: L1ランキングのみ → スコアリング導入が必要"></textarea></div>
-  <div><label class="block font-medium mb-2">Q2. 4原則のうち、あなたのプロダクトで最も設計が難しいのはどれ？なぜ？</label>
+  <div><label class="block font-medium mb-2">Q2. 4原則のうち、HP プロダクトで最も設計が難しいのはどれ？なぜ？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m13-r2" placeholder="忘却の設計が最も難しい。医療データは法的に保存義務がある一方で..."></textarea></div>
   <div><label class="block font-medium mb-2">Q3. 「Proactive Recall」を実現するには、どんな技術的基盤が必要ですか？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m13-r3" placeholder="現在の文脈の自動分析、記憶との類似度計算、表示タイミングの最適化..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: { label: '実務接続', content: `
+<h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8"><h3 class="font-bold mb-3">📐 6層設計 v2.0 の設計書</h3>
+<p class="text-sm">4原則フレームワークを使って、MEMORY.md の次期バージョンを設計してください。</p></div>
+<div><label class="block font-medium mb-2">各原則に対する具体的な改善点を記述してください。</label>
+<textarea class="reflection-textarea w-full h-48 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m13-connect" placeholder="符号化: 重要度スコアリングの自動化（LLMに判定させる）\n保持: エピソードと意味の分離をより厳密に\n忘却: 記憶タイプ別TTL（L5は30日、L4は90日、L2は無期限）\n想起: Recency×Importance×Relevanceの3要素スコアリング導入"></textarea></div>` }
   },
   quiz: [
     { question: '記憶の4設計次元に含まれないのはどれ？', options: ['符号化（何を覚えるか）', '保持（どう整理するか）', '翻訳（どう変換するか）', '想起（どう想起するか）'], correct: 2, explanation: '4次元は符号化・保持・忘却・想起。認知科学の3段階モデル（符号化・保持・検索）に「忘却」を設計次元として明示的に追加したもの。' },
@@ -1855,13 +1996,80 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
   ]
 },
 
+// ────────────────────────────────────────────────────────────
+// Module 14: HP Product Application
+// ────────────────────────────────────────────────────────────
+{
+  id: 'hp-product-app',
+  num: '15',
+  phase: 4,
+  title: 'HP プロダクトへの応用設計',
+  subtitle: '医師の診療文脈を記憶する UX',
+  icon: '🏥',
+  tabs: {
+    concept: { label: '概念', content: `
+<h2 class="text-2xl font-bold mb-6">医療 AI の記憶 UX を設計する</h2>
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>Phase 1-4 の全てを HP プロダクト（MediNavi 等）に具体化。医師の意思決定を支援する「記憶を持つ AI」の UX 設計。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">医療における記憶の4タイプ</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">📅 Patient Episodic</div><p class="text-xs text-muted">患者の診療エピソード（前回の訴え、検査の経緯、治療反応）</p></div>
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">📚 Medical Semantic</div><p class="text-xs text-muted">医学知識（ガイドライン、薬剤情報、エビデンス）</p></div>
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">🔧 Clinical Procedural</div><p class="text-xs text-muted">診療パターン（問診の進め方、検査手順）</p></div>
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">🏢 Institutional</div><p class="text-xs text-muted">組織の暗黙知（紹介元、連携状況）</p></div>
+</div>
+
+<h3 class="text-lg font-bold mb-4">AI が記憶で支援する意思決定</h3>
+<ul class="text-sm space-y-2 mb-6">
+  <li><strong>情報統合</strong>: 複数回の診察、複数の検査、複数診療科の情報を統合</li>
+  <li><strong>縦断的追跡</strong>: 「3ヶ月前と比べてこの検査値がどう変化したか」</li>
+  <li><strong>コンテキスト再構築</strong>: 久しぶりの患者の「前回までの経緯」を瞬時にサマリー</li>
+  <li><strong>エビデンスマッチング</strong>: 患者の状態に最適なガイドラインの自動提示</li>
+</ul>
+
+<h3 class="text-lg font-bold mb-4">設計チェックリスト</h3>
+<div class="space-y-2 mb-6 text-sm">
+  <div class="flex items-start gap-2"><span>☐</span> 記憶の出典と鮮度が常に表示されるか？</div>
+  <div class="flex items-start gap-2"><span>☐</span> 医師が記憶を確認・修正できるか？</div>
+  <div class="flex items-start gap-2"><span>☐</span> 不確実性が明示されるか？</div>
+  <div class="flex items-start gap-2"><span>☐</span> Override が容易か？</div>
+  <div class="flex items-start gap-2"><span>☐</span> 多職種間での記憶共有が適切にスコーピングされるか？</div>
+  <div class="flex items-start gap-2"><span>☐</span> 患者のプライバシーが保護されるか？</div>
+</div>` },
+    reflect: { label: '内省', content: `
+<h2 class="text-2xl font-bold mb-6">総合演習: MediNavi の記憶 UX 設計</h2>
+<div class="space-y-8">
+  <div><label class="block font-medium mb-2">Q1. 医師が新患を診るとき、AI はどの「記憶タイプ」を最初に提示すべきですか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m14-r1" placeholder="紹介状の内容（Institutional）+ 既往歴サマリー（Patient Episodic）"></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 再診患者の場合はどう変わりますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m14-r2" placeholder="前回からの変化のハイライト + 未解決の課題 + 次のアクション"></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 全16モジュールの学びを統合して、MediNavi の「記憶ビジョン」を1段落で書いてください。</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m14-r3" placeholder="MediNavi は医師のワーキングメモリを拡張し、患者のエピソード記憶を..."></textarea></div>
+</div>` },
+    quiz: { label: '確認テスト', content: 'quiz' },
+    connect: { label: '実務接続', content: `
+<h2 class="text-2xl font-bold mb-6">最終課題</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8"><h3 class="font-bold mb-3">🏥 MediNavi Memory UX 設計書</h3>
+<p class="text-sm">全モジュールの知識を統合した設計書を書いてください。</p></div>
+<div><label class="block font-medium mb-2">MediNavi の記憶アーキテクチャ設計書（記憶タイプ、符号化方法、保持/忘却ポリシー、想起方法、信頼設計、認知負荷配慮）を書いてください。</label>
+<textarea class="reflection-textarea w-full h-64 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m14-connect" placeholder="## MediNavi Memory Architecture v1.0\n\n### 記憶タイプと保持ポリシー\n- Patient Episodic: 無期限保持、最終アクセスから1年でアーカイブ\n..."></textarea></div>` }
+  },
+  quiz: [
+    { question: '医療 AI の記憶で「縦断的追跡」が特に重要な理由はどれ？', options: ['データ量が多いから', '慢性疾患では時間経過に伴う変化が診断と治療の鍵だから', 'レポートが長くなるから', '法的要件だから'], correct: 1, explanation: '糖尿病、高血圧、がんなどの慢性疾患では「3ヶ月前と比べてどう変化したか」が重要な臨床判断の根拠。AI の記憶で自動追跡できると大きな価値。' },
+    { question: '多職種連携での記憶共有で最も重要な設計原則はどれ？', options: ['全職種に全情報を公開', 'アクセス権限のスコーピング（職種・役割に応じた閲覧範囲）', '記憶の暗号化のみ', '記憶の共有を禁止'], correct: 1, explanation: '看護師が知るべき情報と医師が知るべき情報は異なる。患者のプライバシーも考慮し、適切なスコーピングが必要。' },
+    { question: '医師にとって AI の記憶が最も価値を生む場面はどれ？', options: ['初診時の基本問診', '久しぶりの再診で前回までの経緯を瞬時にサマリーする場面', '定期検査のオーダー', '退院サマリーの作成'], correct: 1, explanation: 'Module 11（認知負荷）で学んだ通り、文脈再構築の認知負荷は大きい。AI が過去の診療文脈を即座にサマリーすることで、医師は本質的な臨床判断に集中できる。' }
+  ]
+},
 
 // ────────────────────────────────────────────────────────────
 // Module 15: Multi-Agent Shared Memory
 // ────────────────────────────────────────────────────────────
 {
   id: 'multi-agent-memory',
-  num: '15',
+  num: '16',
   phase: 4,
   title: 'マルチエージェント共有記憶',
   subtitle: '組織記憶・Transactive Memory・集合知',
@@ -1895,18 +2103,28 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
   <div class="border border-border p-3 rounded-lg"><strong>Hierarchical Memory</strong>: 上位エージェントが統合記憶を管理し、下位に配布</div>
   <div class="border border-border p-3 rounded-lg"><strong>Blackboard Architecture</strong>: 共有の「黒板」に情報を書き込み、各エージェントが読む</div>
 </div>
-` },
+
+<div class="analogy-box p-5 rounded-r-lg mb-6">
+  <p class="font-medium mb-2">🔗 Ubie の組織への示唆</p>
+  <p class="text-sm">Ubie 社内で複数の Claude Code インスタンスが稼働している場合、それぞれの MEMORY.md は「個人の記憶」。これらを統合する「組織記憶」の仕組み（共有 Plugin、共有ナレッジベース）が Transactive Memory System に対応。</p>
+</div>` },
     reflect: { label: '内省', content: `
 <h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
 <div class="space-y-8">
-  <div><label class="block font-medium mb-2">Q1. Transactive Memory System をあなたのチーム・組織に当てはめると？</label>
-  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-r1" placeholder="各メンバーの専門領域が Specialization を持ち、役割が Coordination を担い..."></textarea></div>
-  <div><label class="block font-medium mb-2">Q2. 4つの設計パターンのうち、あなたのプロダクトやチームに最適なのはどれ？</label>
-  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-r2" placeholder="Federated Memory が最適。各専門領域の記憶は独立させつつ..."></textarea></div>
-  <div><label class="block font-medium mb-2">Q3. 全15モジュールを学んだ今、「記憶を持つ AI エージェント」の最も重要な設計原則を1つだけ選ぶとしたら？</label>
+  <div><label class="block font-medium mb-2">Q1. Transactive Memory System を Ubie のホラクラシー組織に当てはめると？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-r1" placeholder="各サークルが Specialization を持ち、ロールが Coordination を担い..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 4つの設計パターンのうち、HP プロダクトの多職種連携に最適なのはどれ？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-r2" placeholder="Federated Memory が最適。各職種の専門記憶は独立させつつ..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 全16モジュールを学んだ今、「記憶を持つ AI エージェント」の最も重要な設計原則を1つだけ選ぶとしたら？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-r3" placeholder="記憶の透明性。ユーザーがエージェントの記憶を理解し制御できることが全ての基盤..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
+    connect: { label: '実務接続', content: `
+<h2 class="text-2xl font-bold mb-6">最終ドメイン接続</h2>
+<div class="bg-subtle p-6 rounded-xl mb-8"><h3 class="font-bold mb-3">🌐 全体統合: 記憶を持つ AI エコシステム</h3>
+<p class="text-sm">全16モジュールの学びを統合し、HP プロダクト × Claude Code × 組織の3つのレイヤーで記憶設計を考えてください。</p></div>
+<div><label class="block font-medium mb-2">「記憶のエコシステム」設計書: HP プロダクト（患者記憶）、Claude Code（業務記憶）、組織（共有記憶）の3層がどう連携するかを記述してください。</label>
+<textarea class="reflection-textarea w-full h-64 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-connect" placeholder="## Memory Ecosystem Design\n\n### Layer 1: HP Product Memory\n...\n### Layer 2: Claude Code Memory\n...\n### Layer 3: Organizational Memory\n..."></textarea></div>` }
   },
   quiz: [
     { question: 'Wegner の Transactive Memory System の核心はどれ？', options: ['全員が全てを記憶する', '「誰が何を知っているか」の知識を共有する', '記憶を中央データベースに集約する', '記憶を暗号化して共有する'], correct: 1, explanation: 'TMS の核心は「メタ知識の共有」。誰に聞けば何がわかるかを知っていること自体がシステムの知性を高める。' },
@@ -1919,534 +2137,21 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 // ============================================================
 // STATE MANAGEMENT
 // ============================================================
-// パスワードハッシュの先頭16文字をユーザー ID として使用。
-// パスワードが異なれば別の ID になるので、学習データが他人と混ざらない。
-function getUserId() {
-  let id = localStorage.getItem('ml-user-id');
-  if (!id) { id = crypto.randomUUID().replace(/-/g,'').substring(0,16); localStorage.setItem('ml-user-id', id); }
-  return id;
-}
-const STATE_KEY = 'memory-learning-app-state-' + getUserId();
-const DEFAULT_STATE = { currentModule: -1, currentTab: 'concept', reflections: {}, quizResults: {}, completedModules: [], followUps: {} };
+const STATE_KEY = 'memory-learning-app-state';
 
-// ============================================================
-// SUPABASE SYNC
-// ============================================================
-const SUPABASE_URL = 'https://zoprivqpzegqybokpegd.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvcHJpdnFwemVncXlib2twZWdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MTk2NDAsImV4cCI6MjA4OTM5NTY0MH0.Wa6HbcHrqNYPCrSUmyGrFrPlAsIejz_p5CZGtPq1tKc';
-let supabaseClient = null;
-let syncStatus = 'offline'; // 'synced' | 'syncing' | 'offline'
-let saveDebounceTimer = null;
-
-function initSupabase() {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
-  try {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    setSyncStatus('syncing');
-    // Realtime subscription
-    supabaseClient.channel('learning-state-' + getUserId())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'learning_state', filter: 'id=eq.' + getUserId() }, (payload) => {
-        if (payload.new && payload.new.state) {
-          const remote = payload.new.state;
-          const merged = mergeStates(state, remote);
-          Object.assign(state, merged);
-          localStorage.setItem(STATE_KEY, JSON.stringify(state));
-          updateSidebar(); updateGlobalProgress();
-          if (state.currentModule >= 0) renderModule(state.currentModule);
-          else renderOverview();
-          setSyncStatus('synced');
-        }
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') setSyncStatus('synced');
-      });
-  } catch(e) { console.warn('Supabase init failed:', e); }
-}
-
-function mergeStates(local, remote) {
-  const merged = { ...local };
-  // completedModules: union
-  const allCompleted = new Set([...(local.completedModules || []), ...(remote.completedModules || [])]);
-  merged.completedModules = [...allCompleted];
-  // quizResults: prefer existing (first write wins)
-  merged.quizResults = { ...remote.quizResults, ...local.quizResults };
-  // quiz_answers: merge per module
-  Object.keys({ ...local, ...remote }).filter(k => k.startsWith('quiz_answers_')).forEach(k => {
-    merged[k] = { ...(remote[k] || {}), ...(local[k] || {}) };
-  });
-  // reflections: field-level merge — keep longer text
-  merged.reflections = { ...(remote.reflections || {}) };
-  Object.entries(local.reflections || {}).forEach(([k, v]) => {
-    if (!merged.reflections[k] || (v && v.length > (merged.reflections[k] || '').length)) {
-      merged.reflections[k] = v;
-    }
-  });
-  // followUps: merge per module
-  merged.followUps = { ...(remote.followUps || {}), ...(local.followUps || {}) };
-  return merged;
-}
-
-async function syncToSupabase() {
-  if (!supabaseClient) return;
-  setSyncStatus('syncing');
-  try {
-    const { error } = await supabaseClient.from('learning_state').upsert({
-      id: getUserId(),
-      state: state,
-      updated_at: new Date().toISOString()
-    });
-    setSyncStatus(error ? 'offline' : 'synced');
-  } catch(e) { setSyncStatus('offline'); }
-}
-
-async function loadFromSupabase() {
-  if (!supabaseClient) return null;
-  try {
-    const { data, error } = await supabaseClient.from('learning_state').select('state').eq('id', getUserId()).single();
-    if (error || !data) return null;
-    return data.state;
-  } catch(e) { return null; }
-}
-
-async function forceSyncNow() {
-  closeToolsMenu();
-  if (!supabaseClient) { alert('Supabase が設定されていません。\nHTML 内の SUPABASE_URL と SUPABASE_ANON_KEY を設定してください。'); return; }
-  setSyncStatus('syncing');
-  const remote = await loadFromSupabase();
-  if (remote) {
-    const merged = mergeStates(state, remote);
-    Object.assign(state, merged);
-    localStorage.setItem(STATE_KEY, JSON.stringify(state));
-    updateSidebar(); updateGlobalProgress();
-    if (state.currentModule >= 0) renderModule(state.currentModule); else renderOverview();
-  }
-  await syncToSupabase();
-}
-
-function setSyncStatus(status) {
-  syncStatus = status;
-  const dot = document.querySelector('#syncIndicator .sync-dot');
-  const label = document.getElementById('syncLabel');
-  if (!dot) return;
-  dot.className = 'sync-dot ' + status;
-  const labels = { synced: '同期済', syncing: '同期中…', offline: 'オフライン' };
-  if (label) label.textContent = labels[status] || '';
-}
-
-// ============================================================
-// TOOLS MENU
-// ============================================================
-function toggleToolsMenu() {
-  document.getElementById('toolsDropdown').classList.toggle('open');
-}
-function closeToolsMenu() {
-  document.getElementById('toolsDropdown').classList.remove('open');
-}
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.tools-menu')) closeToolsMenu();
-});
-
-// ============================================================
-// API SETTINGS
-// ============================================================
-function showApiSettings() {
-  closeToolsMenu();
-  const current = sessionStorage.getItem('claude-api-key') || '';
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
-  overlay.innerHTML = `
-    <div class="modal-box">
-      <h3 class="text-lg font-bold mb-2">API 設定</h3>
-      <p class="text-sm text-muted mb-4">Claude API キーを設定すると「もっと深く分析」機能が使えます。キーはセッション中のみ保持され、ブラウザを閉じると消えます。</p>
-      <input id="apiKeyInput" type="password" value="${current}" placeholder="sk-ant-..." class="w-full px-3 py-2 border border-border rounded-lg text-sm mb-4" />
-      <div class="flex gap-2 justify-end">
-        <button onclick="this.closest('.modal-overlay').remove()" class="px-4 py-2 text-sm text-muted hover:text-ink">キャンセル</button>
-        <button onclick="saveApiKey()" class="px-4 py-2 text-sm bg-accent text-white rounded-lg hover:bg-accentDark">保存</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-}
-function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (key) sessionStorage.setItem('claude-api-key', key);
-  else sessionStorage.removeItem('claude-api-key');
-  document.querySelector('.modal-overlay').remove();
-}
-
-// ============================================================
-// STATE LOAD / SAVE
-// ============================================================
 function loadState() {
   try {
     const saved = localStorage.getItem(STATE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return { ...DEFAULT_STATE, ...parsed };
-    }
+    if (saved) return JSON.parse(saved);
   } catch(e) {}
-  return { ...DEFAULT_STATE };
+  return { currentModule: -1, currentTab: 'concept', reflections: {}, quizResults: {}, completedModules: [] };
 }
 
 function saveState() {
   localStorage.setItem(STATE_KEY, JSON.stringify(state));
-  // Debounced Supabase sync
-  if (supabaseClient) {
-    clearTimeout(saveDebounceTimer);
-    saveDebounceTimer = setTimeout(() => syncToSupabase(), 500);
-  }
 }
 
 let state = loadState();
-
-// Init Supabase after state is loaded (errors must not block rendering)
-(async function() {
-  try {
-    initSupabase();
-    if (supabaseClient) {
-      const remote = await loadFromSupabase();
-      if (remote) {
-        const merged = mergeStates(state, remote);
-        Object.assign(state, merged);
-        localStorage.setItem(STATE_KEY, JSON.stringify(state));
-        updateSidebar(); updateGlobalProgress();
-        if (state.currentModule >= 0) renderModule(state.currentModule); else renderOverview();
-      }
-    }
-  } catch(e) { console.warn('Supabase sync skipped:', e); }
-})();
-
-// ============================================================
-// FOLLOW-UP QUESTION BANK (Layer 1: Rule-based)
-// ============================================================
-const FOLLOWUP_BANK = {
-  // Module 0: 記憶の3段階モデル
-  0: [
-    { concept: 'multi-store-model', question: '感覚記憶から短期記憶に移行するために必要な認知プロセスは何？', hint: '日常で「聞こえたけど聞いてなかった」現象を思い出してみよう' },
-    { concept: 'multi-store-model', question: '短期記憶の容量制限（7±2）を克服するための「チャンキング」を、AIエージェント設計にどう活用できる？', hint: '複数の情報を意味のある単位にまとめる例を考えてみよう' },
-    { concept: 'levels-of-processing', question: '意味的処理と構造的処理の記憶定着の差は実験でどう検証された？', hint: '単語リストを使った実験を想像してみよう' },
-    { concept: 'levels-of-processing', question: 'エージェントの記憶の「符号化品質」を高めるために、ログをそのまま保存するのではなく何をすべき？', hint: 'メタデータ、要約、関連付け…' },
-    { concept: 'encoding-agents', question: 'エージェント記憶の「符号化→保持→検索」で、最もボトルネックになりやすい段階はどれ？なぜ？', hint: '人間の記憶と同じく、最初の段階が全体の質を決める' },
-    { concept: 'encoding-agents', question: '人間の記憶で「リハーサル」に相当するエージェントの仕組みを2つ挙げてみよう', hint: '繰り返しアクセス、定期的な再評価…' },
-  ],
-  // Module 1: 記憶の種類
-  1: [
-    { concept: 'working-memory', question: 'Baddeley モデルの「エピソードバッファ」が LLM のどの機構に対応するか説明してみよう', hint: '異なる形式の情報を統合する場所…' },
-    { concept: 'working-memory', question: 'ワーキングメモリの容量制限が AI エージェントのコンテキストウィンドウとどう対応するか、具体例を挙げて', hint: '同時に処理できる情報量の上限' },
-    { concept: 'episodic-memory', question: '意味記憶とエピソード記憶の変換プロセスを、エージェントの Reflection 機能と結びつけて説明して', hint: '具体的体験 → 抽象的知識の流れ' },
-    { concept: 'episodic-memory', question: 'エージェントが「手続き記憶」を獲得するプロセスとして、ファインチューニング以外にどんな方法がある？', hint: 'ツール使用パターンの学習、プロンプトテンプレート…' },
-    { concept: 'procedural-memory', question: '人間の手続き記憶（自転車の乗り方など）が「言語化しにくい」のと同様に、AIで言語化しにくい知識とは？', hint: 'モデルの重みに埋め込まれた知識' },
-    { concept: 'procedural-memory', question: 'プロンプトテンプレートは「手続き記憶」と「意味記憶」のどちらに近い？根拠を挙げて', hint: '定型的な手順 vs 事実の知識' },
-  ],
-  // Module 2: 忘却と想起
-  2: [
-    { concept: 'forgetting-curve', question: '忘却曲線の減衰を遅らせる「間隔反復」の最適タイミングはどう決まる？', hint: '忘れかけた頃に復習するのが最も効果的' },
-    { concept: 'forgetting-curve', question: 'エージェント記憶で TTL（Time To Live）を設計する際、一律の期限より適応的な忘却が優れている理由は？', hint: 'アクセス頻度、重要度、文脈依存性…' },
-    { concept: 'encoding-specificity', question: '「勉強した場所で試験を受けると成績が良い」現象を、エージェント記憶検索にどう活かせる？', hint: '検索クエリに文脈情報を含める' },
-    { concept: 'encoding-specificity', question: 'エージェントのメモリ検索で「想起手がかり」を充実させる具体的な設計方法を3つ考えて', hint: 'メタデータ、文脈タグ、関連リンク…' },
-    { concept: 'testing-effect', question: 'テスト効果を活用した「セルフテスト」機能をエージェントに実装するとしたら、どんな仕組み？', hint: '記憶の定着を確認するフローバック' },
-    { concept: 'testing-effect', question: '単なる再読よりテスト（想起練習）が記憶定着に1.5倍効果的な認知科学的理由は？', hint: '検索プロセス自体が記憶痕跡を強化する' },
-  ],
-  // Module 3: 神経科学の基礎
-  3: [
-    { concept: 'hippocampus', question: '海馬が「記憶のインデックス」として機能するモデルを、MEMORY.md の L1 参照リストと比較して', hint: '分散保存された情報を結びつけるポインター' },
-    { concept: 'hippocampus', question: '海馬損傷患者 H.M. が新しいエピソード記憶を形成できなかったのに手続き記憶は獲得できた理由は？', hint: '手続き記憶は海馬を経由しない' },
-    { concept: 'synaptic-plasticity', question: 'LTP（長期増強）の「使うほど強くなる」性質を、エージェント記憶のスコアリングにどう実装できる？', hint: 'アクセス頻度による重み付け' },
-    { concept: 'synaptic-plasticity', question: '睡眠中の記憶固定化に相当する、エージェントの「オフライン整理」プロセスを設計してみよう', hint: 'バッチ処理で記憶の整理・圧縮・再構成' },
-    { concept: 'systems-consolidation', question: '記憶の固定化が「海馬→大脳皮質」へ移動するプロセスは、エージェントのどんなアーキテクチャに対応する？', hint: 'ホットストレージ→コールドストレージ' },
-    { concept: 'systems-consolidation', question: '情動が記憶を強化する神経科学的メカニズムを、エージェント設計で「重要な出来事を優先記憶」する仕組みに応用するには？', hint: '扁桃体の役割、優先度スコアリング' },
-  ],
-  // Module 4: LLM の仕組み
-  4: [
-    { concept: 'next-token-prediction', question: '次トークン予測が「理解」ではなくパターンマッチングである限界を、具体例で説明して', hint: '事実と異なる流暢な文章を生成するケース' },
-    { concept: 'next-token-prediction', question: 'LLM の学習データと人間の長期記憶の類似点と相違点を3つずつ挙げて', hint: '更新可能性、構造、検索方法…' },
-    { concept: 'attention-mechanism', question: 'Attention の「Query-Key-Value」構造を、図書館での調べ物に例えて説明して', hint: '質問→目次の照合→本文の取得' },
-    { concept: 'attention-mechanism', question: 'コンテキストウィンドウが拡大しても「中間部分を見落とす」Lost-in-the-Middle 問題はなぜ起きる？', hint: 'Attention の分布、最初と最後に偏る' },
-    { concept: 'context-window', question: 'コンテキストウィンドウの「有効活用」と、人間のワーキングメモリのチャンキング戦略の共通点は？', hint: '限られた容量を最大限活用する工夫' },
-    { concept: 'context-window', question: 'もし LLM のコンテキストが無限になったら、記憶設計は不要になる？なぜ or なぜ不要にならない？', hint: '検索の精度、ノイズ、コスト…' },
-  ],
-  // Module 5: RAG と外部記憶
-  5: [
-    { concept: 'embedding', question: '「意味が近い」テキストのエンベディングが近くなる仕組みを、座標空間のメタファーで説明して', hint: '多次元空間でのベクトル距離' },
-    { concept: 'embedding', question: 'エンベディングの限界（文脈によって意味が変わる同じ単語）を具体例で説明して', hint: '「銀行」= 金融機関？川岸？' },
-    { concept: 'rag-vs-llm', question: 'RAG の retrieval 段階で「関連性が高いが質問の答えにならない」文書が混入する問題の対策は？', hint: 'リランキング、フィルタリング、クエリ変換…' },
-    { concept: 'rag-vs-llm', question: 'RAG と Fine-tuning を組み合わせるハイブリッドアプローチの利点と欠点を整理して', hint: '知識の更新容易性 vs 推論品質' },
-    { concept: 'chunking', question: 'ドキュメントのチャンキング戦略で「意味的境界」を検出する手法を2つ挙げて', hint: '段落、見出し、トピック変化点…' },
-    { concept: 'chunking', question: 'チャンクサイズが大きすぎる場合と小さすぎる場合、それぞれどんな問題が起きる？', hint: '精度 vs 文脈保持のトレードオフ' },
-  ],
-  // Module 6: エージェント記憶設計
-  6: [
-    { concept: 'generative-agents', question: 'Generative Agents の Recency × Importance × Relevance スコアリングで、各要素の重みをどう決めるべき？', hint: 'ユースケースにより最適な重みが異なる' },
-    { concept: 'generative-agents', question: 'Reflection（内省）で「抽象度が適切」な洞察を生成するために、どんなプロンプト設計が有効？', hint: '具体→抽象の粒度指定' },
-    { concept: 'memgpt', question: 'MemGPT の「仮想ページング」は OS のメモリ管理のどの概念と対応する？違いは？', hint: 'ページイン/ページアウト、LRU' },
-    { concept: 'memgpt', question: 'Core Memory / Recall Memory / Archival Memory の使い分け基準を、あなたの業務に当てはめて具体化して', hint: '常時参照/検索可能/長期保存' },
-    { concept: 'letta', question: 'Letta の3層メモリと人間の記憶タイプ（ワーキング/エピソード/意味）の対応関係を整理して', hint: 'Core↔WM, Recall↔Episodic, Archival↔Semantic' },
-    { concept: 'letta', question: '記憶のセルフ編集機能のリスク（間違った記憶を書き込む）を防ぐ安全策を3つ提案して', hint: 'バリデーション、ロールバック、人間のレビュー' },
-  ],
-  // Module 7: 最新論文サーベイ
-  7: [
-    { concept: 'survey-trends', question: '2024-2025 年の記憶研究で「マルチモーダル記憶」が重要視される理由は？', hint: '画像・音声・テキストの統合記憶' },
-    { concept: 'survey-trends', question: '記憶の「階層構造」（要約→詳細）が検索精度を高める理由を情報理論の観点で説明して', hint: 'まず大まかなマッチ→絞り込み' },
-    { concept: 'survey-architecture', question: '論文で提案される記憶アーキテクチャの多くが「人間の記憶モデル」を参照する理由は？', hint: 'バイオインスパイアド設計の利点' },
-    { concept: 'survey-architecture', question: '記憶の「圧縮」と「忠実性」のトレードオフをどう管理するのが最善か？', hint: '要約レベルの段階管理、原文保持' },
-    { concept: 'survey-evaluation', question: '記憶ありエージェントの評価指標として「記憶正確性」以外に重要な指標を3つ挙げて', hint: '適時性、関連性、プライバシー…' },
-    { concept: 'survey-evaluation', question: '記憶のベンチマークが難しい理由を、他の NLP タスクと比較して説明して', hint: '正解が一意でない、文脈依存性が高い' },
-  ],
-  // Module 8: Agentic UX の構造
-  8: [
-    { concept: 'agentic-ux', question: 'GUI → Conversational → Agentic の進化で「ユーザーの認知負荷」はどう変化する？', hint: '操作負荷↓ + 信頼判断負荷↑' },
-    { concept: 'agentic-ux', question: 'Agentic UX で記憶が「パーソナライゼーション」を超えて「信頼構築」に寄与するメカニズムは？', hint: '「自分を理解している」感覚' },
-    { concept: 'graceful-handoff', question: '医療 AI での Graceful Handoff の具体的な実装例を3つ考えて', hint: '確信度表示、専門医紹介、人間レビュー促進' },
-    { concept: 'graceful-handoff', question: 'Handoff のタイミングが「早すぎる」場合と「遅すぎる」場合のそれぞれのリスクは？', hint: '価値毀損 vs 信頼毀損' },
-    { concept: 'memory-in-agentic', question: '記憶を持つエージェントが「不気味の谷」に陥るのはどんな場合？その対策は？', hint: '期待との不一致、透明性の欠如' },
-    { concept: 'memory-in-agentic', question: '短期的なタスク完了と長期的な関係構築で、記憶設計の優先度はどう変わる？', hint: '即時利便性 vs 信頼蓄積' },
-  ],
-  // Module 9: 信頼の校正
-  9: [
-    { concept: 'trust-model', question: 'Performance / Process / Purpose の3要素のうち、AI でユーザーが最初に評価するのはどれ？なぜ？', hint: '直接観察できるもの' },
-    { concept: 'trust-model', question: '記憶を持つ AI に固有の信頼課題を、記憶を持たない AI と比較して3つ挙げて', hint: '正確性、鮮度、プライバシー' },
-    { concept: 'calibration', question: '「過信（over-trust）」と「過小信頼（under-trust）」のそれぞれの実害を医療 AI で例示して', hint: '見逃し vs 不活用' },
-    { concept: 'calibration', question: 'Trust Calibration のために記憶の「確信度」を表示する UI を設計してみよう', hint: '最終更新日、情報源、推定信頼度' },
-    { concept: 'memory-trust', question: '古い記憶に基づく推薦が信頼を毀損する具体例を、あなたの業務で考えて', hint: '変更された仕様、異動した担当者…' },
-    { concept: 'memory-trust', question: '「この情報は X月時点のものです」表示が信頼に与える影響を正負両面で分析して', hint: '透明性↑ vs 不安↑' },
-  ],
-  // Module 10: 認知負荷と AI
-  10: [
-    { concept: 'cognitive-load', question: '外在的負荷を削減する UI 改善を、あなたが使う AI ツールで3つ提案して', hint: '情報の構造化、フィルタリング、段階的開示' },
-    { concept: 'cognitive-load', question: 'AI が「本質的負荷」まで削減してしまうリスクを具体例で説明して', hint: '学習機会の喪失、スキル退化' },
-    { concept: 'proactive-memory', question: 'プロアクティブな記憶呼び出しが認知負荷を「増やす」ケースを考えて', hint: '不要な情報の提示、注意の分散' },
-    { concept: 'proactive-memory', question: 'ユーザーの認知状態（忙しい/集中/探索中）に応じて記憶の提示方法を変える設計をしてみよう', hint: 'アンビエント vs 明示的' },
-    { concept: 'memory-offloading', question: '記憶の外部化（AI に任せる）によるユーザーの記憶力低下リスクとその対策は？', hint: 'Google Effect、能動的関与の促進' },
-    { concept: 'memory-offloading', question: 'CLT の3種の負荷を記憶 AI の設計原則に翻訳してみよう', hint: '削減すべき負荷 / 守るべき負荷 / 促進すべき負荷' },
-  ],
-  // Module 11: 共有文脈
-  11: [
-    { concept: 'common-ground', question: 'Common Ground が構築されていない AI との対話で「意図が伝わらない」経験を分析して', hint: '暗黙の前提、共有知識の不足' },
-    { concept: 'common-ground', question: 'Grounding の「相互確認」プロセスを、チャットbot に実装するとどんな対話フローになる？', hint: '確認質問、要約フィードバック' },
-    { concept: 'progressive-disclosure', question: 'Progressive Disclosure of Memory の4段階を、あなたのプロダクトに適用してみよう', hint: 'Ambient → Explicit → Dashboard → Negotiation' },
-    { concept: 'progressive-disclosure', question: 'Memory Negotiation（記憶の交渉）が最も必要な場面は？その理由は？', hint: '記憶の修正、プライバシーに関わる記憶' },
-    { concept: 'shared-context-design', question: 'AI が「空気を読む」ことの利点とリスクを、Common Ground Theory の観点で分析して', hint: '暗黙の Grounding の限界' },
-    { concept: 'shared-context-design', question: '多言語・多文化環境での Common Ground 構築の課題と、記憶設計での対策は？', hint: '文化的文脈の違い、メタデータの言語依存性' },
-  ],
-  // Module 12: 記憶の UX パターン
-  12: [
-    { concept: 'memory-ux-patterns', question: 'Anticipation（予測的支援）が「おせっかい」にならない境界線をどう設計する？', hint: '確信度閾値、ユーザーの受容性' },
-    { concept: 'memory-ux-patterns', question: 'Uncanny Memory アンチパターンの実例を身の回りのサービスから探して分析して', hint: 'リターゲティング広告、パーソナライズ推薦' },
-    { concept: 'stale-memory', question: '古い記憶に基づく行動が特に危険な業務領域を3つ挙げて、それぞれの対策を考えて', hint: '医療、金融、法律…' },
-    { concept: 'stale-memory', question: '記憶の「鮮度管理」を自動化する仕組みとして TTL 以外にどんなアプローチがある？', hint: '変更検知、定期確認、ユーザー報告' },
-    { concept: 'over-personalization', question: '過度なパーソナライゼーションが「フィルターバブル」を作るリスクをエージェント記憶でどう防ぐ？', hint: '多様性の確保、ランダム性の導入' },
-    { concept: 'over-personalization', question: '記憶を「忘れる」ことが UX を向上させるケースを3つ考えて', hint: '変化した嗜好、一時的な行動、プライバシー' },
-  ],
-  // Module 13: 記憶の設計原則
-  13: [
-    { concept: 'design-dimensions', question: '符号化・保持・忘却・想起の4次元で、あなたのプロダクトの記憶設計を評価してみよう', hint: '各次元のスコアと改善点' },
-    { concept: 'design-dimensions', question: '「忘却」を設計次元に含める（3段階→4次元）ことの実践的な意義を説明して', hint: '忘却はバグではなくフィーチャー' },
-    { concept: 'access-refresh', question: 'アクセスリフレッシュ（TTLリセット）のリスクを考えて。どんな記憶には適用すべきでない？', hint: '事実が変化する情報、誤って記憶したもの' },
-    { concept: 'access-refresh', question: 'Ebbinghaus の忘却曲線を活用した「最適復習タイミング通知」をエージェントに実装するには？', hint: 'SuperMemo アルゴリズム、SM-2' },
-    { concept: 'proactive-recall', question: 'Proactive Recall の「文脈検出」精度を高めるために、どんなシグナルを使えばよい？', hint: '時間、場所、話題、参加者、カレンダー…' },
-    { concept: 'proactive-recall', question: '受動的検索（ユーザーが探す）vs 能動的想起（エージェントが思い出す）の適切な使い分け基準は？', hint: '緊急度、関連度、認知負荷' },
-  ],
-  // Module 14: 医療への応用
-  14: [
-    { concept: 'medical-memory', question: '医療 AI の記憶が「古い検査値」に基づいて推薦する危険を具体的な症例で説明して', hint: '経時変化する数値、治療方針の変更' },
-    { concept: 'medical-memory', question: '多職種連携でのアクセス権限スコーピングを、具体的な職種（医師/看護師/薬剤師）で設計して', hint: '職種ごとに必要な情報が異なる' },
-    { concept: 'patient-memory', question: '患者の記憶（体験、不安、価値観）を AI が記憶することのメリットとリスクを整理して', hint: '個別化医療 vs プライバシー' },
-    { concept: 'patient-memory', question: '患者が「自分の暮らし」を軸に意思決定するための記憶支援をどう設計する？', hint: '生活文脈、価値観、治療との折り合い' },
-    { concept: 'federated-memory', question: 'Federated Memory パターンで、組織間（病院間）の記憶共有をどう実現する？', hint: '標準フォーマット、同意管理、アクセスログ' },
-    { concept: 'federated-memory', question: '電子カルテの記憶と AI エージェントの記憶の連携における技術的・倫理的課題は？', hint: 'データ形式、更新タイミング、責任所在' },
-  ],
-  // Module 15: TMS
-  15: [
-    { concept: 'transactive-memory', question: '「誰が何を知っているか」のメタ知識を AI エージェントに実装する具体的なデータモデルを設計して', hint: 'エキスパティーズマップ、スキルタグ' },
-    { concept: 'transactive-memory', question: 'Wegner の TMS が高性能チームの条件とされる理由を、情報検索コストの観点で説明して', hint: '検索の効率化、冗長性の排除' },
-    { concept: 'multi-agent-memory', question: 'マルチエージェントシステムで Shared Memory Pool と Federated Memory のどちらを選ぶ判断基準は？', hint: 'プライバシー要件、一貫性要件、スケーラビリティ' },
-    { concept: 'multi-agent-memory', question: '組織の TMS が崩壊する（キーパーソンの離職）リスクを AI で軽減する方法を考えて', hint: '知識の文書化、代替ルートの確保' },
-    { concept: 'blackboard-architecture', question: 'Blackboard Architecture の利点と限界を、最新のマルチエージェントフレームワークと比較して', hint: '中央集権 vs 分散、スケーラビリティ' },
-    { concept: 'blackboard-architecture', question: 'あなたのチームの TMS を AI で強化するとしたら、まず何から始める？', hint: '現状の知識フローの可視化' },
-  ],
-};
-
-// Map quiz questions to concepts for follow-up matching
-const QUIZ_CONCEPT_MAP = {
-  0: ['multi-store-model', 'levels-of-processing', 'encoding-agents'],
-  1: ['working-memory', 'episodic-memory', 'procedural-memory'],
-  2: ['forgetting-curve', 'encoding-specificity', 'testing-effect'],
-  3: ['hippocampus', 'synaptic-plasticity', 'systems-consolidation'],
-  4: ['next-token-prediction', 'attention-mechanism', 'context-window'],
-  5: ['embedding', 'rag-vs-llm', 'chunking'],
-  6: ['generative-agents', 'generative-agents', 'memgpt'],
-  7: ['survey-trends', 'survey-architecture', 'survey-evaluation'],
-  8: ['agentic-ux', 'graceful-handoff', 'memory-in-agentic'],
-  9: ['trust-model', 'memory-trust', 'calibration'],
-  10: ['cognitive-load', 'proactive-memory', 'memory-offloading'],
-  11: ['common-ground', 'progressive-disclosure', 'shared-context-design'],
-  12: ['memory-ux-patterns', 'stale-memory', 'over-personalization'],
-  13: ['design-dimensions', 'access-refresh', 'proactive-recall'],
-  14: ['medical-memory', 'federated-memory', 'patient-memory'],
-  15: ['transactive-memory', 'multi-agent-memory', 'blackboard-architecture'],
-};
-
-function analyzeWeakness(moduleIdx) {
-  const answers = state[`quiz_answers_${moduleIdx}`] || {};
-  const questions = MODULES[moduleIdx].quiz;
-  const concepts = QUIZ_CONCEPT_MAP[moduleIdx] || [];
-  const weakConcepts = [];
-
-  questions.forEach((q, i) => {
-    if (answers[i] !== undefined && answers[i] !== q.correct) {
-      if (concepts[i]) weakConcepts.push(concepts[i]);
-    }
-  });
-
-  return weakConcepts;
-}
-
-function analyzeReflectionDepth(moduleIdx) {
-  const reflKeys = Object.keys(state.reflections || {}).filter(k => k.startsWith(`m${moduleIdx}-`));
-  let totalLen = 0;
-  let hasKeywords = false;
-  const deepKeywords = ['なぜなら', 'つまり', '具体的に', '例えば', 'に対して', 'の違い', 'という理由', 'と考える', 'に活用', '設計', '実装', '応用'];
-
-  reflKeys.forEach(k => {
-    const text = state.reflections[k] || '';
-    totalLen += text.length;
-    if (deepKeywords.some(kw => text.includes(kw))) hasKeywords = true;
-  });
-
-  if (totalLen > 200 && hasKeywords) return 'deep';
-  if (totalLen > 50) return 'moderate';
-  return 'shallow';
-}
-
-function getFollowUpQuestions(moduleIdx) {
-  const bank = FOLLOWUP_BANK[moduleIdx] || [];
-  const weakConcepts = analyzeWeakness(moduleIdx);
-  const depth = analyzeReflectionDepth(moduleIdx);
-
-  let selected = [];
-  // Prioritize questions for weak concepts
-  weakConcepts.forEach(concept => {
-    const matching = bank.filter(q => q.concept === concept && !selected.includes(q));
-    if (matching.length > 0) selected.push(matching[0]);
-  });
-
-  // If reflection is shallow, add general questions
-  if (depth === 'shallow' && selected.length < 3) {
-    const remaining = bank.filter(q => !selected.includes(q));
-    while (selected.length < 3 && remaining.length > 0) {
-      selected.push(remaining.shift());
-    }
-  }
-
-  // Ensure at least 2 questions if quiz was taken
-  if (selected.length < 2 && state.quizResults[moduleIdx] !== undefined) {
-    const remaining = bank.filter(q => !selected.includes(q));
-    while (selected.length < 2 && remaining.length > 0) {
-      selected.push(remaining.shift());
-    }
-  }
-
-  return selected.map(q => ({ ...q, source: 'local' }));
-}
-
-function getComprehensionLevel(moduleIdx) {
-  const quizDone = state.quizResults[moduleIdx] !== undefined;
-  const quizPassed = quizDone && state.quizResults[moduleIdx] >= Math.ceil(MODULES[moduleIdx].quiz.length * 0.67);
-  const depth = analyzeReflectionDepth(moduleIdx);
-  const hasFollowUpAnswers = (state.followUps[moduleIdx] || []).some(f => f.answer && f.answer.length > 10);
-
-  if (quizPassed && depth === 'deep' && hasFollowUpAnswers) return 'green';
-  if (quizPassed && depth !== 'shallow') return 'yellow';
-  if (!quizDone) return 'red';
-  return 'yellow';
-}
-
-// ============================================================
-// LAYER 2: Claude API Analysis
-// ============================================================
-async function requestClaudeAnalysis(moduleIdx) {
-  const apiKey = sessionStorage.getItem('claude-api-key');
-  if (!apiKey) {
-    showApiSettings();
-    return;
-  }
-
-  // Privacy notice on first use
-  if (!sessionStorage.getItem('claude-api-consent')) {
-    const ok = confirm('内省テキストとクイズ結果を Claude API に送信します。\nAnthopic はAPIデータを学習に使用しません。\n\n続行しますか？');
-    if (!ok) return;
-    sessionStorage.setItem('claude-api-consent', '1');
-  }
-
-  const m = MODULES[moduleIdx];
-  const reflKeys = Object.keys(state.reflections || {}).filter(k => k.startsWith(`m${moduleIdx}-`));
-  const reflTexts = reflKeys.map(k => state.reflections[k]).filter(Boolean).join('\n');
-  const weakConcepts = analyzeWeakness(moduleIdx);
-  const quizScore = state.quizResults[moduleIdx];
-
-  const btn = document.getElementById('claudeAnalysisBtn');
-  if (btn) { btn.disabled = true; btn.textContent = '分析中…'; }
-
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
-        messages: [{
-          role: 'user',
-          content: `あなたは認知科学とAIの学習コーチです。以下の学習者の状況を分析し、理解を深めるためのフォローアップ質問を3つ生成してください。
-
-モジュール: ${m.title}（${m.subtitle}）
-クイズスコア: ${quizScore !== undefined ? quizScore + '/' + m.quiz.length : '未受験'}
-弱点概念: ${weakConcepts.length > 0 ? weakConcepts.join(', ') : 'なし'}
-内省テキスト:
-${reflTexts || '（未記入）'}
-
-以下のJSON形式で回答してください（他のテキストは不要）:
-[
-  {"question": "質問文", "hint": "考えるヒント", "concept": "関連概念"},
-  {"question": "質問文", "hint": "考えるヒント", "concept": "関連概念"},
-  {"question": "質問文", "hint": "考えるヒント", "concept": "関連概念"}
-]
-
-質問は:
-- 学習者の弱点を補強する
-- 内省が浅い場合はより深い思考を促す
-- 実務への応用を意識させる
-- 日本語で出力`
-        }]
-      })
-    });
-
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-
-    const text = data.content[0].text;
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) throw new Error('Failed to parse response');
-
-    const questions = JSON.parse(jsonMatch[0]);
-    const followUps = questions.map(q => ({ ...q, source: 'claude', answer: '' }));
-
-    if (!state.followUps[moduleIdx]) state.followUps[moduleIdx] = [];
-    // Remove old Claude follow-ups, keep local ones
-    state.followUps[moduleIdx] = state.followUps[moduleIdx].filter(f => f.source !== 'claude');
-    state.followUps[moduleIdx].push(...followUps);
-    saveState();
-    renderModule(moduleIdx);
-  } catch(e) {
-    alert('分析に失敗しました: ' + e.message);
-    if (btn) { btn.disabled = false; btn.textContent = '🤖 もっと深く分析（Claude API）'; }
-  }
-}
 
 // ============================================================
 // RENDERING
@@ -2486,7 +2191,6 @@ function renderOverview() {
       <h1 class="text-3xl font-black mb-2">記憶の科学とエージェント設計</h1>
       <p class="text-muted mb-6">Memory Science for Agent Design — 認知科学 × AI 技術 × Agentic UX を横断して学ぶ</p>
 
-
       <div class="grid grid-cols-1 gap-4 mb-8">
         <div class="bg-subtle p-5 rounded-xl">
           <h3 class="font-bold mb-2">学習設計について</h3>
@@ -2494,7 +2198,8 @@ function renderOverview() {
           <ul class="text-sm space-y-1">
             <li><strong>テスト効果（Testing Effect）</strong>: 各モジュールに確認テストがあり、想起練習で定着を促進</li>
             <li><strong>精緻化質問（Elaborative Interrogation）</strong>: 「自分の言葉で説明」で深い処理を促進</li>
-            <li><strong>処理水準（Levels of Processing）</strong>: 概念 → 内省 → 確認テストの順で処理を深化</li>
+            <li><strong>転移適切処理（Transfer-Appropriate Processing）</strong>: 「実務接続」で仕事への転移を促進</li>
+            <li><strong>処理水準（Levels of Processing）</strong>: 概念 → 内省 → 確認テスト → 実務接続の順で処理を深化</li>
           </ul>
         </div>
       </div>
@@ -2512,14 +2217,9 @@ function renderOverview() {
   `;
 }
 
-function compTitle(level) {
-  return level === 'green' ? '理解度: 高' : level === 'yellow' ? '理解度: 中' : '理解度: 低';
-}
-
 function moduleCard(m, idx) {
   const isComplete = state.completedModules.includes(idx);
   const quizDone = state.quizResults[idx] !== undefined;
-  const compLevel = getComprehensionLevel(idx);
   return `
     <div class="module-card border border-border rounded-xl p-5 cursor-pointer bg-white ${isComplete ? 'border-success/50' : ''}" onclick="navigateTo(${idx})">
       <div class="flex items-center gap-3 mb-3">
@@ -2528,10 +2228,7 @@ function moduleCard(m, idx) {
           <div class="text-xs text-muted font-mono">Module ${m.num}</div>
           <div class="font-bold text-sm">${m.title}</div>
         </div>
-        <div class="ml-auto flex items-center gap-2">
-          <span class="comp-dot ${compLevel}" title="${compTitle(compLevel)}"></span>
-          ${isComplete ? '<span class="text-success text-lg">✓</span>' : ''}
-        </div>
+        ${isComplete ? '<span class="ml-auto text-success text-lg">✓</span>' : ''}
       </div>
       <div class="text-xs text-muted">${m.subtitle}</div>
       ${quizDone ? `<div class="mt-3 text-xs"><span class="bg-success/10 text-success px-2 py-0.5 rounded">Quiz: ${state.quizResults[idx]}/${m.quiz.length}</span></div>` : ''}
@@ -2542,8 +2239,6 @@ function moduleCard(m, idx) {
 function navigateTo(idx) {
   state.currentModule = idx;
   state.currentTab = 'concept';
-  splitActive = false;
-  splitRightTab = 'reflect';
   saveState();
   updateSidebar();
   renderModule(idx);
@@ -2612,18 +2307,6 @@ function renderModule(idx) {
       saveState();
     });
   });
-
-  // Restore follow-up answers
-  el.querySelectorAll('.followup-textarea').forEach(ta => {
-    const modIdx = parseInt(ta.dataset.followupModule);
-    const fIdx = parseInt(ta.dataset.followupIdx);
-    ta.addEventListener('input', () => {
-      if (state.followUps[modIdx] && state.followUps[modIdx][fIdx]) {
-        state.followUps[modIdx][fIdx].answer = ta.value;
-        saveState();
-      }
-    });
-  });
 }
 
 function renderQuiz(moduleIdx) {
@@ -2669,7 +2352,6 @@ function renderQuiz(moduleIdx) {
         <div class="text-3xl font-black mb-2">${results}/${questions.length}</div>
         <div class="text-muted text-sm">正答率 ${Math.round(results / questions.length * 100)}%</div>
       </div>
-      ${renderFollowUpSection(moduleIdx)}
     ` : ''}
   `;
 }
@@ -2692,75 +2374,6 @@ function answerQuiz(moduleIdx, questionIdx, optionIdx) {
 
   saveState();
   renderModule(moduleIdx);
-}
-
-function renderFollowUpSection(moduleIdx) {
-  // Generate local follow-ups if not already done
-  if (!state.followUps[moduleIdx] || state.followUps[moduleIdx].filter(f => f.source === 'local').length === 0) {
-    const localQs = getFollowUpQuestions(moduleIdx);
-    if (!state.followUps[moduleIdx]) state.followUps[moduleIdx] = [];
-    state.followUps[moduleIdx] = [
-      ...localQs.map(q => ({ ...q, answer: '', source: 'local' })),
-      ...state.followUps[moduleIdx].filter(f => f.source === 'claude')
-    ];
-    saveState();
-  }
-
-  const followUps = state.followUps[moduleIdx] || [];
-  const localQs = followUps.filter(f => f.source === 'local');
-  const claudeQs = followUps.filter(f => f.source === 'claude');
-  const weakConcepts = analyzeWeakness(moduleIdx);
-  const depth = analyzeReflectionDepth(moduleIdx);
-
-  let analysis = '';
-  if (weakConcepts.length > 0) {
-    analysis += `<div class="text-sm mb-2"><span class="inline-block bg-red-50 text-red-600 px-2 py-0.5 rounded text-xs mr-1">弱点検出</span> ${weakConcepts.join(', ')} の理解が不十分です</div>`;
-  }
-  if (depth === 'shallow') {
-    analysis += `<div class="text-sm mb-2"><span class="inline-block bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded text-xs mr-1">内省</span> より深い振り返りが記憶定着を高めます</div>`;
-  } else if (depth === 'deep') {
-    analysis += `<div class="text-sm mb-2"><span class="inline-block bg-green-50 text-green-700 px-2 py-0.5 rounded text-xs mr-1">内省</span> 深い振り返りができています</div>`;
-  }
-
-  return `
-    <div class="mt-10 pt-8 border-t border-border">
-      <h3 class="text-xl font-bold mb-2">フォローアップ</h3>
-      <p class="text-sm text-muted mb-4">クイズ結果と内省の深さから、理解を補強する質問を提示します</p>
-      ${analysis}
-      ${localQs.length > 0 ? `
-        <div class="mb-6">
-          <div class="text-xs font-bold text-muted uppercase tracking-widest mb-3">ルールベース分析</div>
-          ${localQs.map((q, i) => followUpCardHTML(moduleIdx, i, q)).join('')}
-        </div>
-      ` : ''}
-      ${claudeQs.length > 0 ? `
-        <div class="mb-6">
-          <div class="text-xs font-bold text-muted uppercase tracking-widest mb-3">Claude AI 分析</div>
-          ${claudeQs.map((q, i) => followUpCardHTML(moduleIdx, localQs.length + i, q)).join('')}
-        </div>
-      ` : ''}
-      <button id="claudeAnalysisBtn" onclick="requestClaudeAnalysis(${moduleIdx})" class="mt-2 px-4 py-2 text-sm border border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors">
-        🤖 もっと深く分析（Claude API）
-      </button>
-    </div>
-  `;
-}
-
-function followUpCardHTML(moduleIdx, idx, q) {
-  const savedAnswer = q.answer || '';
-  return `
-    <div class="followup-card ${q.source === 'claude' ? 'from-claude' : 'from-local'} mb-3">
-      <div class="flex items-start gap-2 mb-2">
-        <span class="text-xs px-1.5 py-0.5 rounded ${q.source === 'claude' ? 'bg-accent/10 text-accent' : 'bg-success/10 text-success'}">${q.source === 'claude' ? 'AI' : 'auto'}</span>
-        <p class="text-sm font-medium flex-1">${q.question}</p>
-      </div>
-      <details class="mb-2">
-        <summary class="text-xs text-muted cursor-pointer hover:text-ink">💡 ヒント</summary>
-        <p class="text-xs text-muted mt-1 pl-2">${q.hint}</p>
-      </details>
-      <textarea class="followup-textarea" data-followup-module="${moduleIdx}" data-followup-idx="${idx}" placeholder="ここに回答を書く…">${savedAnswer}</textarea>
-    </div>
-  `;
 }
 
 function markComplete(idx) {
@@ -2882,89 +2495,6 @@ function playVideoAt(seconds) {
 // SPLIT VIEW (Desktop)
 // ============================================================
 let splitActive = false;
-let splitRightTab = 'reflect';
-function toggleSplitView(idx, rightTab) {
-  // Close dropdown
-  const dd = document.getElementById('splitDropdown');
-  if (dd) dd.classList.add('hidden');
-
-  // If null passed or same tab clicked while active, close split view
-  if (rightTab === null || (splitActive && rightTab === splitRightTab)) {
-    splitActive = false;
-    splitRightTab = 'reflect';
-    const sv = document.getElementById('splitView');
-    const single = document.getElementById('singleView');
-    if (sv) sv.classList.remove('active');
-    if (single) single.style.display = '';
-    document.querySelector('.main-content').classList.remove('split-view-active');
-    renderModule(idx);
-    return;
-  }
-
-  splitActive = true;
-  splitRightTab = rightTab || 'reflect';
-  const sv = document.getElementById('splitView');
-  const single = document.getElementById('singleView');
-  const m = MODULES[idx];
-
-  sv.classList.add('active');
-  single.style.display = 'none';
-  document.querySelector('.main-content').classList.add('split-view-active');
-
-  // Left pane: always concept
-  document.getElementById('splitLeft').innerHTML = '<h3 class="text-lg font-bold mb-4 sticky top-0 bg-paper py-2 z-10 border-b border-border">📖 概念</h3>' + m.tabs.concept.content;
-
-  // Right pane: depends on splitRightTab
-  const rightPane = document.getElementById('splitRight');
-  const labelMap = { reflect: '✍️ 内省', quiz: '🧪 確認テスト' };
-  const rightLabel = labelMap[splitRightTab] || '✍️ 内省';
-
-  if (splitRightTab === 'quiz') {
-    rightPane.innerHTML = '<h3 class="text-lg font-bold mb-4 sticky top-0 bg-paper py-2 z-10 border-b border-border">' + rightLabel + '</h3>' + renderQuiz(idx);
-  } else {
-    rightPane.innerHTML = '<h3 class="text-lg font-bold mb-4 sticky top-0 bg-paper py-2 z-10 border-b border-border">' + rightLabel + '</h3>' + m.tabs.reflect.content;
-  }
-
-  // Restore reflections/textareas in right pane (for reflect tab)
-  rightPane.querySelectorAll('.reflection-textarea').forEach(ta => {
-    const key = ta.dataset.key;
-    if (state.reflections[key]) ta.value = state.reflections[key];
-    ta.addEventListener('input', () => { state.reflections[key] = ta.value; saveState(); });
-  });
-
-  // Restore follow-up textareas in right pane (for quiz tab)
-  rightPane.querySelectorAll('.followup-textarea').forEach(ta => {
-    const modIdx = parseInt(ta.dataset.followupModule);
-    const fIdx = parseInt(ta.dataset.followupIdx);
-    ta.addEventListener('input', () => {
-      if (state.followUps[modIdx] && state.followUps[modIdx][fIdx]) {
-        state.followUps[modIdx][fIdx].answer = ta.value;
-        saveState();
-      }
-    });
-  });
-
-  // Update button label
-  const btnLabel = document.getElementById('splitBtnLabel');
-  if (btnLabel) {
-    const shortMap = { reflect: '内省', quiz: '確認テスト' };
-    btnLabel.textContent = '概念+' + (shortMap[splitRightTab] || '内省');
-  }
-}
-
-// Close split dropdown on click outside
-document.addEventListener('click', function(e) {
-  const dd = document.getElementById('splitDropdown');
-  const btn = document.getElementById('splitDropdownBtn');
-  if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
-    dd.classList.add('hidden');
-  }
-});
-
-// ============================================================
-// MOBILE NAVIGATION
-// ============================================================
-let splitActive = false;
 function toggleSplitView(idx) {
   splitActive = !splitActive;
   const sv = document.getElementById('splitView');
@@ -2976,6 +2506,7 @@ function toggleSplitView(idx) {
     document.querySelector('.main-content').classList.add('split-view-active');
     document.getElementById('splitLeft').innerHTML = '<h3 class="text-lg font-bold mb-4 sticky top-0 bg-paper py-2 z-10 border-b border-border">📖 概念</h3>' + m.tabs.concept.content;
     document.getElementById('splitRight').innerHTML = '<h3 class="text-lg font-bold mb-4 sticky top-0 bg-paper py-2 z-10 border-b border-border">✍️ 内省</h3>' + m.tabs.reflect.content;
+    // Restore reflections in split view
     document.getElementById('splitRight').querySelectorAll('.reflection-textarea').forEach(ta => {
       const key = ta.dataset.key;
       if (state.reflections[key]) ta.value = state.reflections[key];
@@ -2988,6 +2519,9 @@ function toggleSplitView(idx) {
   }
 }
 
+// ============================================================
+// MOBILE NAVIGATION
+// ============================================================
 function toggleMobileMenu() {
   document.querySelector('.sidebar').classList.toggle('open');
   document.querySelector('.sidebar-overlay').classList.toggle('open');
@@ -3022,7 +2556,7 @@ if (state.currentModule >= 0) {
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+  navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 </script>
 </body>
