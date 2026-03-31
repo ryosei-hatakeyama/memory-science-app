@@ -1,0 +1,3006 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function(){
+  const PASS_HASH = 'fdb2620ed871210faf179386c20fdb3c7a07cc1f1fe05673c90f16feb7abda70';
+  async function sha256(msg){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(msg));return[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+  const stored=sessionStorage.getItem('ml-auth');
+  if(stored===PASS_HASH)return;
+  document.addEventListener('DOMContentLoaded',function(){
+    document.body.innerHTML='';document.body.style.cssText='display:flex;align-items:center;justify-content:center;min-height:100vh;background:#faf9f7;font-family:system-ui,sans-serif;';
+    const d=document.createElement('div');d.style.cssText='text-align:center;max-width:320px;';
+    d.innerHTML='<div style="font-size:2rem;margin-bottom:1rem">🧠</div><h1 style="font-size:1.1rem;font-weight:700;margin-bottom:.5rem">Memory Science for Agent Design</h1><p style="font-size:.8rem;color:#8a8278;margin-bottom:1rem">限定公開 — パスワードを入力してください</p><p style="font-size:.7rem;color:#b0a89e;margin-bottom:1.5rem">学習の進捗はパスワードごとに保存されます。<br>同じパスワードなら別の端末でも続きから学べます。</p><input id="pw" type="password" placeholder="パスワード" style="width:100%;padding:.6rem 1rem;border:1px solid #e2ddd8;border-radius:8px;font-size:.9rem;margin-bottom:.75rem;outline:none;background:white"><br><button id="go" style="width:100%;padding:.6rem;background:#e07a5f;color:white;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:500">入る</button><p id="err" style="color:#d44;font-size:.75rem;margin-top:.5rem;display:none">パスワードが違います</p>';
+    document.body.appendChild(d);
+    const pw=document.getElementById('pw'),go=document.getElementById('go'),err=document.getElementById('err');
+    async function check(){const h=await sha256(pw.value);if(h===PASS_HASH){sessionStorage.setItem('ml-auth',h);location.reload();}else{err.style.display='block';pw.value='';pw.focus();}}
+    go.onclick=check;pw.onkeydown=function(e){if(e.key==='Enter')check();};pw.focus();
+  });
+  document.write('<style>header,nav,main{display:none!important}</style>');
+})();
+</script>
+<title>Memory Science for Agent Design</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ink: '#1a1a2e',
+        paper: '#faf9f7',
+        accent: '#e07a5f',
+        accentDark: '#c4613f',
+        subtle: '#f0edea',
+        border: '#e2ddd8',
+        muted: '#8a8278',
+        success: '#4a9e6b',
+        warning: '#d4a03c',
+      },
+      fontFamily: {
+        sans: ['"Noto Sans JP"', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      }
+    }
+  }
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { background: #faf9f7; }
+  .module-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+  .module-card { transition: all 0.2s ease; }
+  .tab-active { border-bottom: 3px solid #e07a5f; color: #1a1a2e; font-weight: 500; }
+  .tab-inactive { border-bottom: 3px solid transparent; color: #8a8278; }
+  .tab-inactive:hover { color: #1a1a2e; }
+  .quiz-option { transition: all 0.15s ease; }
+  .quiz-option:hover:not(.selected):not(.disabled) { background: #f0edea; border-color: #c4b5a8; }
+  .quiz-option.selected { border-color: #e07a5f; background: #fef3f0; }
+  .quiz-option.correct { border-color: #4a9e6b; background: #f0f9f3; }
+  .quiz-option.incorrect { border-color: #d44; background: #fef0f0; }
+  .quiz-option.disabled { cursor: default; opacity: 0.7; }
+  .reflection-textarea { transition: border-color 0.2s; }
+  .reflection-textarea:focus { border-color: #e07a5f; outline: none; }
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .progress-fill { transition: width 0.5s ease; }
+  .split-view { display: none; }
+  @media (min-width: 1025px) {
+    .split-view-active .main-content { max-width: 100%; }
+    .split-view-active .main-content > div { max-width: 100%; padding-left: 2rem; padding-right: 2rem; }
+    .split-view { display: none; }
+    .split-view.active { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .split-pane { max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 8px; }
+    .split-pane::-webkit-scrollbar { width: 4px; }
+    .split-pane::-webkit-scrollbar-thumb { background: #e2ddd8; border-radius: 2px; }
+    .split-btn { display: inline-flex !important; }
+  }
+  @media (max-width: 1024px) { .split-btn { display: none !important; } }
+  .video-card { border: 1px solid #e2ddd8; border-radius: 12px; overflow: hidden; background: #1a1a2e; cursor: pointer; transition: all 0.2s; }
+  .video-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.15); transform: translateY(-1px); }
+  .video-card video { width: 100%; display: block; }
+  .video-card .video-meta { padding: 10px 14px; background: #faf9f7; border-top: 1px solid #e2ddd8; }
+  .video-card .video-meta .video-title { font-size: 0.8rem; font-weight: 500; color: #1a1a2e; }
+  .video-card .video-meta .video-time { font-size: 0.7rem; color: #8a8278; font-family: 'JetBrains Mono', monospace; }
+  .video-full { border-radius: 12px; overflow: hidden; background: #1a1a2e; }
+  .video-full video { width: 100%; display: block; }
+  details summary { cursor: pointer; }
+  details summary::-webkit-details-marker { display: none; }
+  .paper-tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 9999px; background: #f0edea; color: #8a8278; }
+  .concept-box { border-left: 4px solid #e07a5f; background: #fef8f6; }
+  .analogy-box { border-left: 4px solid #4a9e6b; background: #f0f9f3; }
+  .sidebar-link.active { background: #fef3f0; color: #c4613f; font-weight: 500; }
+  .sidebar-link { transition: all 0.15s; }
+  .sidebar-link:hover { background: #f0edea; }
+  @media (max-width: 1024px) {
+    .sidebar { display: none; position: fixed; z-index: 60; top: 0; left: 0; bottom: 0; width: 80vw; max-width: 300px; padding-top: 56px; box-shadow: 4px 0 25px rgba(0,0,0,0.15); }
+    .sidebar.open { display: block; }
+    .sidebar-overlay { display: none; position: fixed; z-index: 55; inset: 0; background: rgba(0,0,0,0.3); }
+    .sidebar-overlay.open { display: block; }
+    .main-content { margin-left: 0 !important; }
+    .mobile-menu-btn { display: flex !important; }
+    .mobile-bottom-nav { display: flex !important; }
+    .main-content { padding-bottom: 72px; }
+  }
+  @media (min-width: 1025px) {
+    .mobile-menu-btn { display: none !important; }
+    .mobile-bottom-nav { display: none !important; }
+    .sidebar-overlay { display: none !important; }
+  }
+  .mobile-bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    background: #faf9f7; border-top: 1px solid #e2ddd8;
+    height: 64px; align-items: center; justify-content: space-around;
+    display: none;
+  }
+  .mobile-bottom-nav button { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; color: #8a8278; font-size: 10px; padding: 6px 12px; cursor: pointer; }
+  .mobile-bottom-nav button.active { color: #e07a5f; }
+  .print-hide { }
+  @media print { .print-hide { display: none; } }
+  /* Sync indicator */
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .sync-dot.synced { background: #4a9e6b; }
+  .sync-dot.syncing { background: #d4a03c; animation: pulse 1s infinite; }
+  .sync-dot.offline { background: #d44; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  /* Follow-up UI */
+  .followup-card { border: 1px solid #e2ddd8; border-radius: 12px; padding: 16px; margin-top: 12px; background: #fefdfb; }
+  .followup-card.from-claude { border-left: 4px solid #e07a5f; }
+  .followup-card.from-local { border-left: 4px solid #4a9e6b; }
+  .followup-textarea { width: 100%; min-height: 60px; border: 1px solid #e2ddd8; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; resize: vertical; background: white; transition: border-color 0.2s; }
+  .followup-textarea:focus { border-color: #e07a5f; outline: none; }
+  /* Comprehension indicator */
+  .comp-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .comp-dot.green { background: #4a9e6b; }
+  .comp-dot.yellow { background: #d4a03c; }
+  .comp-dot.red { background: #d44; }
+  /* Tools menu */
+  .tools-menu { position: relative; }
+  .tools-dropdown { display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #e2ddd8; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); min-width: 200px; z-index: 70; padding: 4px; }
+  .tools-dropdown.open { display: block; }
+  .tools-dropdown button { display: block; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; font-size: 0.8rem; border-radius: 8px; cursor: pointer; }
+  .tools-dropdown button:hover { background: #f0edea; }
+  /* API settings modal */
+  .modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-box { background: white; border-radius: 16px; padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+</style>
+</head>
+<body class="font-sans text-ink min-h-screen">
+
+<!-- Header -->
+<div class="sidebar-overlay" onclick="closeMobileMenu()"></div>
+<header class="fixed top-0 left-0 right-0 z-50 bg-paper/95 backdrop-blur border-b border-border print-hide">
+  <div class="max-w-screen-2xl mx-auto px-4 h-14 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <button class="mobile-menu-btn items-center justify-center w-8 h-8 rounded-lg hover:bg-subtle" onclick="toggleMobileMenu()" style="display:none">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
+      </button>
+      <span class="text-xl">🧠</span>
+      <h1 class="text-sm font-bold tracking-tight sm:text-base">記憶の科学</h1>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="text-sm text-muted hidden sm:block">
+        進捗: <span id="globalProgress" class="font-mono font-medium text-ink">0</span>/16
+      </div>
+      <div class="w-32 h-2 bg-subtle rounded-full overflow-hidden hidden sm:block">
+        <div id="globalProgressBar" class="h-full bg-accent rounded-full progress-fill" style="width:0%"></div>
+      </div>
+      <div id="syncIndicator" class="flex items-center gap-1.5 text-xs text-muted" title="同期ステータス">
+        <span class="sync-dot offline"></span>
+        <span class="hidden sm:inline" id="syncLabel">オフライン</span>
+      </div>
+      <div class="tools-menu">
+        <button onclick="toggleToolsMenu()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-subtle">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="3.5" r="1.5"/><circle cx="9" cy="9" r="1.5"/><circle cx="9" cy="14.5" r="1.5"/></svg>
+        </button>
+        <div id="toolsDropdown" class="tools-dropdown">
+          <button onclick="showApiSettings()">🔑 API 設定</button>
+          <button onclick="exportNotes()">📥 ノート書き出し</button>
+          <button onclick="showGlossary()">📖 用語集</button>
+          <button onclick="forceSyncNow()">🔄 手動同期</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Sidebar -->
+<nav class="sidebar fixed top-14 left-0 bottom-0 w-64 bg-paper border-r border-border overflow-y-auto p-4 print-hide">
+  <div class="mb-4">
+    <a href="#" onclick="showOverview(); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5 font-medium">
+      📋 全体概要
+    </a>
+  </div>
+  <div class="mb-4">
+    <div class="text-xs font-bold text-muted uppercase tracking-widest mb-2">第1部: 認知科学</div>
+    <a href="#" onclick="navigateTo(0); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="0">
+      <span class="opacity-50 font-mono mr-2">01</span> 記憶の3段階モデル
+    </a>
+    <a href="#" onclick="navigateTo(1); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="1">
+      <span class="opacity-50 font-mono mr-2">02</span> 記憶の種類
+    </a>
+    <a href="#" onclick="navigateTo(2); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="2">
+      <span class="opacity-50 font-mono mr-2">03</span> 忘却と想起
+    </a>
+    <a href="#" onclick="navigateTo(3); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="3">
+      <span class="opacity-50 font-mono mr-2">04</span> 神経科学の基礎
+    </a>
+  </div>
+  <div class="mb-4">
+    <div class="text-xs font-bold text-muted uppercase tracking-widest mb-2">第2部: AI の記憶技術</div>
+    <a href="#" onclick="navigateTo(4); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="4">
+      <span class="opacity-50 font-mono mr-2">05</span> LLM の仕組み
+    </a>
+    <a href="#" onclick="navigateTo(5); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="5">
+      <span class="opacity-50 font-mono mr-2">06</span> RAG と外部記憶
+    </a>
+    <a href="#" onclick="navigateTo(6); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="6">
+      <span class="opacity-50 font-mono mr-2">07</span> エージェント記憶設計
+    </a>
+    <a href="#" onclick="navigateTo(7); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="7">
+      <span class="opacity-50 font-mono mr-2">08</span> 最新論文サーベイ
+    </a>
+  </div>
+  <div class="mb-4">
+    <div class="text-xs font-bold text-muted uppercase tracking-widest mb-2">第3部: エージェント体験設計</div>
+    <a href="#" onclick="navigateTo(8); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="8">
+      <span class="opacity-50 font-mono mr-2">09</span> Agentic UX の構造
+    </a>
+    <a href="#" onclick="navigateTo(9); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="9">
+      <span class="opacity-50 font-mono mr-2">10</span> 信頼の校正 <span class="text-xs text-muted">(Trust)</span>
+    </a>
+    <a href="#" onclick="navigateTo(10); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="10">
+      <span class="opacity-50 font-mono mr-2">11</span> 認知負荷と AI
+    </a>
+    <a href="#" onclick="navigateTo(11); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="11">
+      <span class="opacity-50 font-mono mr-2">12</span> 共有文脈 <span class="text-xs text-muted">(Grounding)</span>
+    </a>
+  </div>
+  <div class="mb-4">
+    <div class="text-xs font-bold text-muted uppercase tracking-widest mb-2">第4部: 記憶の設計実践</div>
+    <a href="#" onclick="navigateTo(12); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="12">
+      <span class="opacity-50 font-mono mr-2">13</span> 記憶の UX パターン
+    </a>
+    <a href="#" onclick="navigateTo(13); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="13">
+      <span class="opacity-50 font-mono mr-2">14</span> 記憶の設計原則
+    </a>
+    <a href="#" onclick="navigateTo(14); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="14">
+      <span class="opacity-50 font-mono mr-2">15</span> マルチエージェント記憶
+    </a>
+  </div>
+  <div class="border-t border-border pt-3">
+    <div class="text-xs font-bold text-muted uppercase tracking-widest mb-2">ツール</div>
+    <a href="#" onclick="showGlossary(); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5">
+      📖 用語集
+    </a>
+    <a href="#" onclick="exportNotes(); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5">
+      💾 ノート書き出し
+    </a>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<main class="main-content ml-64 pt-14 min-h-screen">
+  <div id="content" class="max-w-3xl mx-auto px-4 sm:px-8 py-6 sm:py-10"></div>
+</main>
+
+<!-- Mobile Bottom Navigation -->
+<nav class="mobile-bottom-nav print-hide">
+  <button onclick="navigatePrev()" id="mobileNavPrev"><span style="font-size:18px">←</span><span>前へ</span></button>
+  <button onclick="showOverview(); closeMobileMenu()" id="mobileNavHome"><span style="font-size:18px">📋</span><span>概要</span></button>
+  <button onclick="toggleMobileMenu()" id="mobileNavModules"><span style="font-size:18px">📚</span><span>目次</span></button>
+  <button onclick="navigateNext()" id="mobileNavNext"><span style="font-size:18px">→</span><span>次へ</span></button>
+</nav>
+
+<script>
+// ============================================================
+// DATA: Modules
+// ============================================================
+const MODULES = [
+// ────────────────────────────────────────────────────────────
+// Module 0: Memory 3-Stage Model
+// ────────────────────────────────────────────────────────────
+{
+  id: 'memory-3stage',
+  num: '01',
+  phase: 1,
+  title: '記憶の3段階モデル',
+  subtitle: 'Encoding → Storage → Retrieval',
+  icon: '🔄',
+  tabs: {
+    concept: {
+      label: '概念',
+      content: `
+<h2 class="text-2xl font-bold mb-6">記憶はどう作られ、保たれ、取り出されるか</h2>
+
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>記憶は「写真を撮るように一瞬で保存される」ものではない。<strong>符号化（Encoding）→ 保持（Storage）→ 検索（Retrieval）</strong>という3つの段階を経て初めて「覚えている」状態になる。どの段階が失敗しても「忘れる」ことになる。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4 mt-8">Atkinson & Shiffrin (1968): Multi-Store Model</h3>
+<p class="mb-4">認知心理学における記憶研究の出発点。記憶を<strong>3つの貯蔵庫</strong>に分けた:</p>
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+  <div class="bg-subtle p-4 rounded-lg text-center">
+    <div class="text-2xl mb-2">👁️</div>
+    <div class="font-bold text-sm mb-1">感覚記憶</div>
+    <div class="text-xs text-muted">Sensory Memory</div>
+    <div class="text-xs mt-2">持続: 0.5〜3秒<br>容量: 大量だが即消失</div>
+  </div>
+  <div class="bg-subtle p-4 rounded-lg text-center">
+    <div class="text-2xl mb-2">🔢</div>
+    <div class="font-bold text-sm mb-1">短期記憶</div>
+    <div class="text-xs text-muted">Short-Term Memory</div>
+    <div class="text-xs mt-2">持続: 15〜30秒<br>容量: 7±2 チャンク</div>
+  </div>
+  <div class="bg-subtle p-4 rounded-lg text-center">
+    <div class="text-2xl mb-2">🗄️</div>
+    <div class="font-bold text-sm mb-1">長期記憶</div>
+    <div class="text-xs text-muted">Long-Term Memory</div>
+    <div class="text-xs mt-2">持続: 数分〜一生<br>容量: 事実上無制限</div>
+  </div>
+</div>
+
+<div class="flex items-center justify-center gap-2 text-sm text-muted mb-8">
+  <span class="bg-subtle px-3 py-1 rounded">感覚入力</span>
+  <span>→ 注意 →</span>
+  <span class="bg-subtle px-3 py-1 rounded">短期記憶</span>
+  <span>→ リハーサル →</span>
+  <span class="bg-subtle px-3 py-1 rounded">長期記憶</span>
+</div>
+
+<p class="mb-4"><span class="paper-tag">重要概念</span> <strong>Miller's Magic Number 7±2</strong>: 人間の短期記憶は一度に約7個（±2）の情報チャンクしか保持できない。電話番号が7桁なのはこれに由来する。</p>
+
+<h3 class="text-lg font-bold mb-4 mt-8">Craik & Lockhart (1972): Levels of Processing（処理水準説）</h3>
+<p class="mb-4">Atkinson-Shiffrin モデルへの重要な対案。「どの貯蔵庫に入ったか」より<strong>「どれだけ深く処理したか」</strong>が記憶定着を決める。</p>
+
+<div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0"><table class="w-full text-sm mb-6 border border-border rounded-lg overflow-hidden min-w-[500px]">
+  <thead class="bg-subtle">
+    <tr><th class="px-4 py-2 text-left">処理水準</th><th class="px-4 py-2 text-left">例</th><th class="px-4 py-2 text-left">記憶定着</th></tr>
+  </thead>
+  <tbody>
+    <tr class="border-t border-border"><td class="px-4 py-2">浅い（構造的）</td><td class="px-4 py-2">文字の形を見る</td><td class="px-4 py-2">低い</td></tr>
+    <tr class="border-t border-border"><td class="px-4 py-2">中間（音韻的）</td><td class="px-4 py-2">声に出して読む</td><td class="px-4 py-2">中程度</td></tr>
+    <tr class="border-t border-border"><td class="px-4 py-2">深い（意味的）</td><td class="px-4 py-2">意味を考え、既存知識と結びつける</td><td class="px-4 py-2">高い</td></tr>
+  </tbody>
+</table></div>
+
+<div class="analogy-box p-5 rounded-r-lg mb-6">
+  <p class="font-medium mb-2">🔗 AI Agent への接続</p>
+  <p>この3段階モデルは、AI エージェントの記憶設計にそのまま対応する:</p>
+  <ul class="mt-2 space-y-1 text-sm">
+    <li><strong>符号化</strong> = ユーザーの発話や行動をどう「記憶に値する形」に変換するか（例: テキストをエンベディングに変換、メタデータ付与）</li>
+    <li><strong>保持</strong> = どこに、どの形式で保存するか（コンテキストウィンドウ vs 外部 DB vs ファイル）</li>
+    <li><strong>検索</strong> = 必要なときに適切な記憶をどう引き出すか（ベクトル検索、キーワードマッチ、時系列）</li>
+  </ul>
+  <p class="mt-3 text-sm">あなたの MEMORY.md の6層設計は3段階すべてに対応しているが、設計の充実度に差がある。<strong>保持</strong>（L1-L5 の階層構造）と<strong>検索</strong>（L1 ランキング、L6 ランタイム取得）は構造化されている。一方<strong>符号化</strong>は「記録ルール」として存在するものの、重要度スコアリング・メタデータスキーマ・処理水準の設計が弱かった。この課題を踏まえ、符号化ポリシー（重要度判定、メタデータ付与、処理の深さ）を明示化する改善を実施済み。</p>
+</div>
+
+<details class="mb-4 border border-border rounded-lg">
+  <summary class="px-4 py-3 font-medium text-sm flex items-center gap-2">📄 論文リファレンス</summary>
+  <div class="px-4 pb-4 text-sm text-muted space-y-2">
+    <p>Atkinson, R. C., & Shiffrin, R. M. (1968). Human memory: A proposed system and its control processes. In <em>Psychology of Learning and Motivation</em> (Vol. 2, pp. 89-195). Academic Press.</p>
+    <p>Craik, F. I. M., & Lockhart, R. S. (1972). Levels of processing: A framework for memory research. <em>Journal of Verbal Learning and Verbal Behavior</em>, 11(6), 671-684.</p>
+    <p>Miller, G. A. (1956). The magical number seven, plus or minus two. <em>Psychological Review</em>, 63(2), 81-97.</p>
+  </div>
+</details>
+`
+    },
+    reflect: {
+      label: '内省',
+      content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<p class="text-muted mb-8">理解を深めるために、以下の問いに自分の言葉で答えてみてください。正解/不正解はありません。「書く」こと自体が深い処理（Craik & Lockhart の意味的処理）になります。</p>
+
+<div class="space-y-8">
+  <div>
+    <label class="block font-medium mb-2">Q1. 符号化・保持・検索の3段階を、料理に例えて説明してみてください。</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m0-r1" placeholder="例: 符号化は食材の下ごしらえ、保持は冷蔵庫に入れること、検索は..."></textarea>
+  </div>
+  <div>
+    <label class="block font-medium mb-2">Q2. 「処理水準説」の立場からすると、単にメモを取ることと、学んだ内容を誰かに教えることでは、なぜ後者のほうが記憶に残りやすいのでしょうか？</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m0-r2" placeholder="自分の考えを書いてみてください"></textarea>
+  </div>
+  <div>
+    <label class="block font-medium mb-2">Q3. あなたの Claude Code の MEMORY.md は、3段階モデルのどの段階に課題がありますか？符号化？保持？検索？理由も含めて書いてみてください。</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m0-r3" placeholder="実体験と結びつけて考えてみてください"></textarea>
+  </div>
+</div>
+`
+    },
+    quiz: {
+      label: '確認テスト',
+      content: 'quiz'
+    },
+  },
+  quiz: [
+    {
+      question: 'Atkinson-Shiffrin モデルにおいて、短期記憶の容量はおよそいくつ？',
+      options: ['3±1 チャンク', '7±2 チャンク', '15±3 チャンク', '容量制限はない'],
+      correct: 1,
+      explanation: 'Miller (1956) の「マジカルナンバー7±2」。短期記憶は一度に約7個（±2）の情報チャンクを保持できる。これは電話番号の桁数やUI設計のメニュー項目数など、実用的な設計指針にも影響を与えている。'
+    },
+    {
+      question: 'Craik & Lockhart の処理水準説によると、最も記憶に定着しやすいのはどの処理？',
+      options: ['構造的処理（文字の見た目に注目）', '音韻的処理（音に注目）', '意味的処理（意味を考え、既存知識と結びつける）', '反復的処理（何度も繰り返す）'],
+      correct: 2,
+      explanation: '意味的処理（深い処理）が最も記憶に定着する。単なる反復（リハーサル）よりも、「なぜそうなるか」「他の知識とどう関連するか」を考える精緻化処理が効果的。これが、このアプリで「自分の言葉で説明してみよう」を採用している理由。'
+    },
+    {
+      question: 'AI エージェントの記憶設計で「符号化」に相当するプロセスはどれ？',
+      options: ['ベクトル DB に保存する', 'ユーザー発話をエンベディングに変換しメタデータを付与する', 'コンテキストウィンドウに情報を載せる', 'ユーザーの質問に合致する過去情報を検索する'],
+      correct: 1,
+      explanation: '符号化は「情報を記憶に値する形に変換する」プロセス。AI では生のテキストをベクトル表現に変換し、時刻・重要度・カテゴリなどのメタデータを付与することが「符号化」にあたる。保存先の選択は「保持」、検索は「検索（Retrieval）」。'
+    }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 1: Types of Memory
+// ────────────────────────────────────────────────────────────
+{
+  id: 'memory-types',
+  num: '02',
+  phase: 1,
+  title: '記憶の種類',
+  subtitle: 'Working Memory, Episodic, Semantic, Procedural',
+  icon: '🗂️',
+  tabs: {
+    concept: {
+      label: '概念',
+      content: `
+<h2 class="text-2xl font-bold mb-6">記憶は一枚岩ではない</h2>
+
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>「記憶」は単一のシステムではなく、<strong>複数の独立したシステム</strong>が協調して動作している。それぞれ異なる脳領域が担当し、異なる機能を果たす。エージェント設計でも、これらを区別して設計することが重要。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">Baddeley & Hitch (1974): Working Memory Model</h3>
+<p class="mb-4">短期記憶を単なる「一時保管庫」ではなく、<strong>能動的な情報処理システム</strong>として再定義した。4つのコンポーネントからなる:</p>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+  <div class="border border-border p-4 rounded-lg">
+    <div class="font-bold text-sm mb-1">🗣️ 音韻ループ</div>
+    <div class="text-xs text-muted mb-2">Phonological Loop</div>
+    <p class="text-sm">言語情報の一時保持と内的リハーサル。「頭の中で繰り返す」機能。</p>
+  </div>
+  <div class="border border-border p-4 rounded-lg">
+    <div class="font-bold text-sm mb-1">🎨 視空間スケッチパッド</div>
+    <div class="text-xs text-muted mb-2">Visuospatial Sketchpad</div>
+    <p class="text-sm">視覚・空間情報の一時保持。地図を思い浮かべる、物体の回転など。</p>
+  </div>
+  <div class="border border-border p-4 rounded-lg">
+    <div class="font-bold text-sm mb-1">🎯 中央実行系</div>
+    <div class="text-xs text-muted mb-2">Central Executive</div>
+    <p class="text-sm">注意の制御と資源配分の司令塔。どの情報に注目するかを決める。</p>
+  </div>
+  <div class="border border-border p-4 rounded-lg">
+    <div class="font-bold text-sm mb-1">📝 エピソードバッファ</div>
+    <div class="text-xs text-muted mb-2">Episodic Buffer (2000年に追加)</div>
+    <p class="text-sm">異なるソースの情報を統合する。長期記憶とワーキングメモリの橋渡し。</p>
+  </div>
+</div>
+
+<h3 class="text-lg font-bold mb-4 mt-8">Tulving (1972, 1983): エピソード記憶 vs 意味記憶</h3>
+<p class="mb-4">長期記憶のうち「言語化できる記憶」（宣言的記憶）を2種類に分けた:</p>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+  <div class="bg-subtle p-5 rounded-lg">
+    <div class="font-bold mb-2">📅 エピソード記憶</div>
+    <div class="text-sm space-y-2">
+      <p>「いつ・どこで・何を経験したか」という<strong>個人的体験</strong>の記憶</p>
+      <p class="text-muted">例: 「昨日のスプリントレビューで mattsun が〇〇と言った」</p>
+      <p class="text-muted">特徴: 時間・場所のタグが付く、主観的、変容しやすい</p>
+    </div>
+  </div>
+  <div class="bg-subtle p-5 rounded-lg">
+    <div class="font-bold mb-2">📚 意味記憶</div>
+    <div class="text-sm space-y-2">
+      <p>一般的な知識・事実・概念。体験から抽象化された<strong>汎用知識</strong></p>
+      <p class="text-muted">例: 「DPC は包括払い方式の略」「スクラムには3つの役割がある」</p>
+      <p class="text-muted">特徴: 時間・場所のタグなし、客観的、比較的安定</p>
+    </div>
+  </div>
+</div>
+
+<h3 class="text-lg font-bold mb-4 mt-8">Squire (1992): 記憶の分類体系</h3>
+<div class="bg-subtle p-5 rounded-lg mb-6 font-mono text-sm">
+<pre>長期記憶
+├── 宣言的記憶（Declarative / Explicit）
+│   ├── エピソード記憶（個人的体験）
+│   └── 意味記憶（一般的知識）
+└── 非宣言的記憶（Non-declarative / Implicit）
+    ├── 手続き記憶（スキル・習慣）
+    ├── プライミング
+    ├── 古典的条件付け
+    └── 非連合学習</pre>
+</div>
+
+<p class="mb-4"><strong>手続き記憶</strong>は特に重要: 自転車の乗り方、タイピング、「この UI パターンならこう操作する」といった<strong>言語化できないスキル</strong>。繰り返しの実践で獲得される。</p>
+
+<div class="analogy-box p-5 rounded-r-lg mb-6">
+  <p class="font-medium mb-2">🔗 AI Agent への接続</p>
+  <table class="w-full text-sm mt-2">
+    <thead><tr><th class="text-left pb-2">人間の記憶</th><th class="text-left pb-2">AI エージェントでの対応</th><th class="text-left pb-2">あなたの6層設計</th></tr></thead>
+    <tbody class="space-y-1">
+      <tr><td class="py-1">ワーキングメモリ</td><td class="py-1">コンテキストウィンドウ</td><td class="py-1">L6（ランタイム）</td></tr>
+      <tr><td class="py-1">エピソード記憶</td><td class="py-1">会話ログ、タスク履歴</td><td class="py-1">L3（実績）、L5（対話学習）</td></tr>
+      <tr><td class="py-1">意味記憶</td><td class="py-1">ドメイン知識、ルール</td><td class="py-1">L4（組織知）、L2（注釈）</td></tr>
+      <tr><td class="py-1">手続き記憶</td><td class="py-1">プロンプトテンプレート、ツール使用パターン</td><td class="py-1">skills/、hooks/</td></tr>
+    </tbody>
+  </table>
+  <p class="mt-3 text-sm">中央実行系 = エージェントの「どのツールを使うか、どの記憶を参照するか」を判断するオーケストレーション層。</p>
+</div>
+
+<details class="mb-4 border border-border rounded-lg">
+  <summary class="px-4 py-3 font-medium text-sm">📄 論文リファレンス</summary>
+  <div class="px-4 pb-4 text-sm text-muted space-y-2">
+    <p>Baddeley, A. D., & Hitch, G. (1974). Working memory. In <em>Psychology of Learning and Motivation</em> (Vol. 8, pp. 47-89).</p>
+    <p>Baddeley, A. (2000). The episodic buffer: a new component of working memory? <em>Trends in Cognitive Sciences</em>, 4(11), 417-423.</p>
+    <p>Tulving, E. (1972). Episodic and semantic memory. In E. Tulving & W. Donaldson (Eds.), <em>Organization of Memory</em>. Academic Press.</p>
+    <p>Squire, L. R. (1992). Memory and the hippocampus. <em>Psychological Review</em>, 99(2), 195-231.</p>
+  </div>
+</details>
+`
+    },
+    reflect: {
+      label: '内省',
+      content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<p class="text-muted mb-8">記憶の種類を区別できることは、エージェントの記憶設計で「何をどこに保存するか」を判断する基礎になります。</p>
+<div class="space-y-8">
+  <div>
+    <label class="block font-medium mb-2">Q1. あなたが今日の午前中にした仕事を思い出してください。その中から「エピソード記憶」「意味記憶」「手続き記憶」をそれぞれ1つずつ挙げてみてください。</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m1-r1" placeholder="エピソード: 〇〇のミーティングで...、意味: DPCとは...、手続き: Figmaの操作..."></textarea>
+  </div>
+  <div>
+    <label class="block font-medium mb-2">Q2. ワーキングメモリの「中央実行系」は、AI エージェントでいうとどの機能に対応すると思いますか？</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m1-r2" placeholder="エージェントが「次に何をするか」を判断するプロセスは..."></textarea>
+  </div>
+  <div>
+    <label class="block font-medium mb-2">Q3. あなたの Claude Code の MEMORY.md には、エピソード記憶的な情報と意味記憶的な情報が混在していませんか？それぞれどう分離すべきでしょうか？</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m1-r3" placeholder="context-log はエピソード的、frameworks は意味的..."></textarea>
+  </div>
+</div>
+`
+    },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    {
+      question: 'Baddeley のワーキングメモリモデルで、注意の配分を制御する司令塔はどれ？',
+      options: ['音韻ループ', '視空間スケッチパッド', '中央実行系', 'エピソードバッファ'],
+      correct: 2,
+      explanation: '中央実行系（Central Executive）は注意資源の配分と制御を担う。AI エージェントで言えば「次にどのツールを使うか」「どの記憶を参照するか」を判断するオーケストレーション層に相当する。'
+    },
+    {
+      question: '「昨日の会議で田中さんが提案した新機能のアイデア」はどの記憶タイプ？',
+      options: ['意味記憶', 'エピソード記憶', '手続き記憶', 'ワーキングメモリ'],
+      correct: 1,
+      explanation: '「いつ・どこで・誰が」という文脈情報を伴う個人的体験の記憶はエピソード記憶。一方「新機能のアイデア」の内容自体が抽象化されて知識になると意味記憶に転化する。'
+    },
+    {
+      question: 'AI エージェントの「手続き記憶」に最も近いのはどれ？',
+      options: ['ベクトル DB に保存されたドキュメント', 'プロンプトテンプレートやツール使用パターン', '会話ログ', 'ユーザープロフィール情報'],
+      correct: 1,
+      explanation: '手続き記憶は「どうやるか」の暗黙知。AI エージェントでは、繰り返し使われるプロンプトパターン、ツールの使い方、コード生成のテンプレートなどが相当する。skills/ や hooks/ がまさにこれ。'
+    }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 2: Forgetting & Recall
+// ────────────────────────────────────────────────────────────
+{
+  id: 'forgetting-recall',
+  num: '03',
+  phase: 1,
+  title: '忘却と想起',
+  subtitle: 'Forgetting Curve, Spaced Repetition, Testing Effect',
+  icon: '💡',
+  tabs: {
+    concept: {
+      label: '概念',
+      content: `
+<h2 class="text-2xl font-bold mb-6">忘れることは失敗ではなく、記憶システムの機能である</h2>
+
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>人間の記憶は「完全に保存して完全に再生する」システムではない。<strong>忘却は適応的な機能</strong>であり、不要な情報を捨てることで重要な情報へのアクセスを効率化している。エージェントの記憶設計でも「何を忘れるか」は「何を覚えるか」と同じくらい重要。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">Ebbinghaus (1885): 忘却曲線</h3>
+<p class="mb-4">ヘルマン・エビングハウスは自らを被験者として無意味綴り（BIK, DAX など）の記憶実験を行い、<strong>忘却の時間経過パターン</strong>を定量化した:</p>
+
+<div class="bg-subtle p-5 rounded-lg mb-6">
+  <div class="font-mono text-sm space-y-1">
+    <p>学習直後: 100% 保持</p>
+    <p>20分後:  <span class="inline-block w-48 bg-accent/20 rounded h-4" style="width:58%"></span> 58%</p>
+    <p>1時間後: <span class="inline-block w-48 bg-accent/30 rounded h-4" style="width:44%"></span> 44%</p>
+    <p>1日後:   <span class="inline-block w-48 bg-accent/40 rounded h-4" style="width:33%"></span> 33%</p>
+    <p>1週間後: <span class="inline-block w-48 bg-accent/50 rounded h-4" style="width:25%"></span> 25%</p>
+    <p>1ヶ月後: <span class="inline-block w-48 bg-accent/60 rounded h-4" style="width:21%"></span> 21%</p>
+  </div>
+  <p class="text-sm text-muted mt-3">※ 忘却曲線は「指数関数的減衰」に近い。初期の忘却が最も急速。</p>
+</div>
+
+<p class="mb-4"><span class="paper-tag">数式メモ</span> 保持率 R ≈ e^(-t/S)、S は記憶の「安定性」パラメータ。復習するたびに S が増大する（忘却曲線が緩やかになる）。</p>
+
+<h3 class="text-lg font-bold mb-4 mt-8">間隔反復（Spaced Repetition）</h3>
+<p class="mb-4">忘却曲線への対抗策として、<strong>最適なタイミングで復習する</strong>手法。「忘れかけた頃に思い出す」ことで記憶の安定性 S を効率的に高められる。</p>
+<div class="flex items-center gap-2 text-sm mb-6 flex-wrap">
+  <span class="bg-accent/10 px-3 py-1 rounded">1回目: 1日後</span>→
+  <span class="bg-accent/20 px-3 py-1 rounded">2回目: 3日後</span>→
+  <span class="bg-accent/30 px-3 py-1 rounded">3回目: 7日後</span>→
+  <span class="bg-accent/40 px-3 py-1 rounded">4回目: 21日後</span>→
+  <span class="bg-accent/50 px-3 py-1 rounded">5回目: 2ヶ月後</span>
+</div>
+
+<h3 class="text-lg font-bold mb-4 mt-8">Tulving & Thomson (1973): 符号化特異性原理</h3>
+<p class="mb-4"><strong>「記憶は、符号化時の文脈と一致する手がかりがあるときに最も想起しやすい」</strong></p>
+<p class="mb-4">つまり、情報を覚えたときの状況（場所、気分、一緒にいた人）が想起の手がかりになる。Godden & Baddeley (1975) は水中で覚えた単語は水中で、陸上で覚えた単語は陸上でよく想起されることを実証した。</p>
+
+<h3 class="text-lg font-bold mb-4 mt-8">Roediger & Karpicke (2006): テスト効果</h3>
+<p class="mb-4">「読み直す」より「テストする（思い出そうとする）」ほうが長期記憶への定着が良い。これは<strong>検索練習（Retrieval Practice）</strong>と呼ばれ、想起のプロセス自体が記憶を強化する。</p>
+
+<div class="bg-subtle p-5 rounded-lg mb-6">
+  <p class="text-sm font-medium mb-2">実験結果（1週間後の保持率）:</p>
+  <div class="flex gap-8 text-sm">
+    <div class="text-center">
+      <div class="text-3xl font-bold text-muted">40%</div>
+      <div class="text-muted">4回読み直し群</div>
+    </div>
+    <div class="text-center">
+      <div class="text-3xl font-bold text-accent">61%</div>
+      <div class="text-accent">1回読み+3回テスト群</div>
+    </div>
+  </div>
+</div>
+
+<h3 class="text-lg font-bold mb-4 mt-8">Bjork & Bjork (1992): 望ましい困難</h3>
+<p class="mb-6">学習時に「ちょうどいい困難さ」を感じる条件のほうが長期的な学習効果が高い。簡単すぎる学習は「流暢さの錯覚」を生み、難しすぎると挫折する。</p>
+
+<div class="analogy-box p-5 rounded-r-lg mb-6">
+  <p class="font-medium mb-2">🔗 AI Agent への接続</p>
+  <ul class="text-sm space-y-2">
+    <li><strong>忘却曲線 → メモリの TTL（Time To Live）設計</strong>: 全ての記憶を永久保存するのではなく、アクセス頻度や鮮度に基づいて減衰させる</li>
+    <li><strong>符号化特異性 → コンテキスト付きメモリ</strong>: 記憶を保存するとき「どの文脈で生まれた情報か」をメタデータとして付与することで、類似の文脈で想起しやすくなる</li>
+    <li><strong>テスト効果 → Active Retrieval 設計</strong>: エージェントが記憶を「読む」だけでなく「検索して取り出す」プロセスを設計する重要性</li>
+    <li><strong>望ましい困難 → 記憶の圧縮と抽象化</strong>: 生データをそのまま保存するのではなく、要約・構造化する「困難な」処理を挟むことで、より使える記憶になる</li>
+  </ul>
+</div>
+
+<details class="mb-4 border border-border rounded-lg">
+  <summary class="px-4 py-3 font-medium text-sm">📄 論文リファレンス</summary>
+  <div class="px-4 pb-4 text-sm text-muted space-y-2">
+    <p>Ebbinghaus, H. (1885). <em>Über das Gedächtnis</em>. Leipzig: Duncker & Humblot.</p>
+    <p>Tulving, E., & Thomson, D. M. (1973). Encoding specificity and retrieval processes in episodic memory. <em>Psychological Review</em>, 80(5), 352-373.</p>
+    <p>Godden, D. R., & Baddeley, A. D. (1975). Context-dependent memory in two natural environments. <em>British Journal of Psychology</em>, 66(3), 325-331.</p>
+    <p>Roediger, H. L., & Karpicke, J. D. (2006). Test-enhanced learning. <em>Psychological Science</em>, 17(3), 249-255.</p>
+    <p>Bjork, R. A., & Bjork, E. L. (1992). A new theory of disuse and an old theory of stimulus fluctuation. In A. Healy et al. (Eds.), <em>From Learning Processes to Cognitive Processes</em> (Vol. 2, pp. 35-67).</p>
+  </div>
+</details>
+`
+    },
+    reflect: {
+      label: '内省',
+      content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div>
+    <label class="block font-medium mb-2">Q1. あなたの MEMORY.md では「3ヶ月経過で棚卸し候補」としていますが、忘却曲線の知見を踏まえると、このタイミングは適切でしょうか？もっと短く／長くすべき情報のタイプはありますか？</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m2-r1" placeholder="エピソード的な情報はもっと短く、フレームワーク的な情報はもっと長く..."></textarea>
+  </div>
+  <div>
+    <label class="block font-medium mb-2">Q2. 符号化特異性原理をエージェント設計に活かすなら、記憶を保存するときにどんな「文脈メタデータ」を付与すべきでしょうか？</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m2-r2" placeholder="誰と、どのプロジェクトで、何の判断の際に..."></textarea>
+  </div>
+  <div>
+    <label class="block font-medium mb-2">Q3. 「忘れることは記憶システムの機能である」という考え方を、エージェントの記憶設計に適用するとどうなりますか？全てを覚え続けるエージェントの問題点を挙げてください。</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m2-r3" placeholder="ノイズが増える、検索精度が下がる..."></textarea>
+  </div>
+</div>
+`
+    },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    {
+      question: 'エビングハウスの忘却曲線によると、学習1日後の保持率はおよそ何%？',
+      options: ['約70%', '約50%', '約33%', '約10%'],
+      correct: 2,
+      explanation: '学習1日後の保持率は約33%。つまり学んだことの約2/3は翌日には忘れている。だからこそ間隔反復（Spaced Repetition）が重要であり、このアプリも反復学習を前提に設計している。'
+    },
+    {
+      question: '符号化特異性原理が示唆する、エージェント記憶設計のベストプラクティスはどれ？',
+      options: ['記憶は可能な限り圧縮して保存する', '記憶には生成時の文脈（誰と、いつ、何のために）をメタデータとして付与する', '全ての記憶を同じフォーマットで統一する', '古い記憶ほど優先的に検索結果に含める'],
+      correct: 1,
+      explanation: '符号化特異性原理は「記憶は符号化時の文脈と一致する手がかりで想起しやすい」ことを示す。つまりエージェント記憶にも「誰との会話で」「どのプロジェクトで」「何の判断のために」といった文脈メタデータを付与することが想起精度を高める。'
+    },
+    {
+      question: 'テスト効果の研究結果として正しいのはどれ？',
+      options: ['繰り返し読むことが最も効果的', 'テスト（想起練習）は読み直しの約1.5倍の定着率', 'テストはストレスを与えるため学習効果を下げる', '効果があるのは暗記科目のみ'],
+      correct: 1,
+      explanation: 'Roediger & Karpicke (2006) の実験では、1回読み+3回テスト群は4回読み直し群に比べて1週間後の保持率が約1.5倍（61% vs 40%）。想起の努力自体が記憶を強化するメカニズム。'
+    }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 3b: Neuroscience
+// ────────────────────────────────────────────────────────────
+{
+  id: 'neuroscience',
+  num: '04',
+  phase: 1,
+  title: '神経科学の基礎',
+  subtitle: '海馬・記憶固定化・シナプス可塑性・睡眠と記憶',
+  icon: '🧬',
+  tabs: {
+    concept: { label: '概念', content: `
+<h2 class="text-2xl font-bold mb-6">記憶は脳のどこでどう作られるか</h2>
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>記憶は脳の物理的な変化として実現される。<strong>海馬</strong>が「記憶の司書」として新しい記憶の形成と整理を担い、<strong>睡眠中に記憶が固定化</strong>される。この生物学的基盤がエージェント記憶のアーキテクチャ設計に深い示唆を与える。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">海馬（Hippocampus）の役割</h3>
+<p class="mb-4">Scoville & Milner (1957) の HM 症例で実証: 海馬を損傷すると新しいエピソード記憶を形成できなくなるが、既存の意味記憶や手続き記憶は保持される。</p>
+<div class="bg-subtle p-4 rounded-lg mb-6 text-sm">
+  <p><strong>海馬 = インデックス</strong>: 記憶の本体は大脳皮質に分散保存され、海馬がそれらを結びつける。</p>
+  <p class="mt-2"><strong>AI 対応</strong>: 海馬 = メモリインデックス（MEMORY.md の L1 ランキング）、大脳皮質 = 分散保存されたトピックファイル</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">記憶固定化（Consolidation）</h3>
+<p class="mb-4">O'Reilly & Norman (2002) の相補学習システム理論:</p>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">海馬: 速い学習</div><p class="text-xs text-muted">個別エピソードを素早く記録（1回の体験で記銘）</p></div>
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">大脳新皮質: 遅い学習</div><p class="text-xs text-muted">繰り返しの経験から統計的パターンを抽出</p></div>
+</div>
+<p class="mb-4 text-sm">睡眠中に海馬の記憶が大脳新皮質に「再生」され、徐々に皮質のみで想起可能になる。→ Generative Agents の Reflection プロセスと直接対応。</p>
+
+<h3 class="text-lg font-bold mb-4">シナプス可塑性と Hebb の法則</h3>
+<p class="mb-4">「一緒に発火するニューロンは一緒に結合される」（Hebb, 1949）</p>
+<ul class="text-sm space-y-1 mb-6">
+  <li><strong>長期増強（LTP）</strong>: シナプス結合が強化 → 記憶の定着</li>
+  <li><strong>長期抑圧（LTD）</strong>: シナプス結合が弱化 → 忘却</li>
+  <li><strong>AI 対応</strong>: ニューラルネットワークの重み更新（学習時のパラメータ調整）</li>
+</ul>
+
+<h3 class="text-lg font-bold mb-4">睡眠と記憶</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+  <div class="border border-border p-4 rounded-lg"><div class="font-bold text-sm mb-1">レム睡眠</div><p class="text-xs text-muted">感情的記憶、手続き記憶の固定化</p></div>
+  <div class="border border-border p-4 rounded-lg"><div class="font-bold text-sm mb-1">ノンレム睡眠（徐波）</div><p class="text-xs text-muted">宣言的記憶（エピソード・意味）の固定化</p></div>
+</div>
+
+<div class="analogy-box p-5 rounded-r-lg mb-6">
+  <p class="font-medium mb-2">🔗 AI Agent への接続</p>
+  <ul class="text-sm space-y-2">
+    <li><strong>海馬のインデックス</strong> = メモリインデックス（何がどこに保存されているか）</li>
+    <li><strong>相補学習システム</strong> = 速い学習（リアルタイム保存）+ 遅い学習（バッチ処理での抽象化）</li>
+    <li><strong>睡眠中の固定化</strong> = エージェントの定期的メモリ整理（Reflection、Summary 生成、TTL チェック）</li>
+    <li><strong>Hebbian Learning</strong> = 「よく一緒に参照される記憶は関連付けが強化される」</li>
+  </ul>
+</div>
+
+<details class="mb-4 border border-border rounded-lg">
+  <summary class="px-4 py-3 font-medium text-sm">📄 論文リファレンス</summary>
+  <div class="px-4 pb-4 text-sm text-muted space-y-2">
+    <p>Scoville, W. B., & Milner, B. (1957). Loss of recent memory after bilateral hippocampal lesions.</p>
+    <p>O'Reilly, R. C., & Norman, K. A. (2002). Hippocampal and neocortical contributions to memory.</p>
+    <p>Hebb, D. O. (1949). The Organization of Behavior.</p>
+    <p>Walker, M. P. (2017). Why We Sleep.</p>
+  </div>
+</details>` },
+    reflect: { label: '内省', content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div><label class="block font-medium mb-2">Q1. 海馬の「インデックス」機能を、あなたの MEMORY.md の設計にどう対応づけますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m3b-r1" placeholder="L1 高頻度参照ファイルのリストがまさにインデックス。本体はトピックファイルに分散..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 「睡眠中の記憶固定化」をエージェント設計に活かすとしたら、どんな「オフライン処理」が考えられますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m3b-r2" placeholder="セッション終了後のバッチ処理: 会話ログの要約、パターン抽出、不要記憶の剪定..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. Hebb の法則をエージェント記憶に適用すると、「よく一緒に参照される記憶」をどう扱うべき？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m3b-r3" placeholder="関連度の自動強化、クラスタリング、リンクの追加..."></textarea></div>
+</div>` },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    { question: '海馬の記憶における役割として最も適切なのはどれ？', options: ['記憶の長期保存場所', '記憶のインデックス（分散保存された記憶を結びつける）', '手続き記憶の処理', '感覚情報の入力処理'], correct: 1, explanation: '海馬は記憶の「インデックス」。記憶の本体は大脳皮質に分散保存され、海馬がそれらの断片を結びつける。MEMORY.md の L1 参照リストに対応。' },
+    { question: '記憶固定化（Consolidation）と Generative Agents の Reflection の共通点はどれ？', options: ['どちらも記憶を削除する', 'どちらもエピソード記憶を抽象化してパターン/洞察に変換する', 'どちらもリアルタイムで動作する', 'どちらも視覚情報を処理する'], correct: 1, explanation: '記憶固定化は睡眠中にエピソードを統合・抽象化。Reflection も蓄積された観察から高次の洞察を生成。ともに「具体→抽象」の変換プロセス。' },
+    { question: 'Hebb の法則「一緒に発火するニューロンは一緒に結合される」のAI記憶設計への示唆はどれ？', options: ['全ての記憶を均等に扱う', 'よく一緒に参照される記憶の関連付けを自動強化する', '古い記憶を削除する', '記憶を圧縮して保存する'], correct: 1, explanation: 'Hebbian Learning のAI版: 「患者Aの情報を参照するときは常にガイドラインBも参照される」→ A-B間のリンクを強化し、Aが想起されたらBも自動的に提示。' }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 3c: How LLMs Work (renumbered)
+// ────────────────────────────────────────────────────────────
+{
+  id: 'how-llms-work',
+  num: '05',
+  phase: 2,
+  title: 'LLM の仕組み',
+  subtitle: 'Transformer, Attention, Context Window',
+  icon: '⚡',
+  tabs: {
+    concept: {
+      label: '概念',
+      content: `
+<h2 class="text-2xl font-bold mb-6">LLM は「記憶」しているのか？</h2>
+
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>LLM（大規模言語モデル）は、次のトークン（単語の断片）を予測する確率モデル。「記憶」に見えるものは<strong>2つの異なるメカニズム</strong>で実現されている: (1) 学習済みパラメータ（≒意味記憶）と (2) コンテキストウィンドウ（≒ワーキングメモリ）。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">トークンと次トークン予測</h3>
+<p class="mb-4">LLM の基本動作は極めてシンプル: <strong>「これまでのテキストが与えられたとき、次に来る可能性が最も高いトークンは何か？」</strong>を予測すること。</p>
+
+<div class="bg-subtle p-5 rounded-lg mb-6 font-mono text-sm">
+  <p class="text-muted mb-2">入力: "患者の検査結果を確認した"</p>
+  <p>予測: "医師" (30%) | "結果" (25%) | "ところ" (20%) | ...</p>
+  <p class="text-muted mt-2">→ "ところ" を選択 → 次の予測: "、" (48%) | "異常" (22%) | ...</p>
+  <p class="text-muted mt-1">→ これを繰り返して文章を生成</p>
+</div>
+
+<p class="mb-4">この予測能力は、膨大なテキストデータから学習された<strong>パラメータ</strong>（重み）に蓄積されている。Claude のようなモデルは数千億のパラメータを持ち、それが事実上の「意味記憶」として機能する。</p>
+
+<h3 class="text-lg font-bold mb-4 mt-8">Vaswani et al. (2017): Transformer と Attention</h3>
+<p class="mb-4">現在の LLM の基盤アーキテクチャ。核心は<strong>Self-Attention（自己注意）メカニズム</strong>:</p>
+
+<div class="bg-subtle p-5 rounded-lg mb-6">
+  <p class="font-medium text-sm mb-3">Attention の直感的理解</p>
+  <p class="text-sm mb-3">文章中の各単語が「他のどの単語に注目すべきか」を動的に計算する仕組み。</p>
+  <p class="text-sm mb-2">例: 「<strong>医師</strong>が患者の検査結果を見て、<strong>彼</strong>は処方を変更した」</p>
+  <p class="text-sm text-muted">→ "彼" が指すのは "医師" か "患者" か？ Attention は文脈から "医師" に高い注意スコアを割り当てる。</p>
+</div>
+
+<p class="mb-2"><span class="paper-tag">数式メモ</span> Attention(Q, K, V) = softmax(QK<sup>T</sup> / √d<sub>k</sub>) V</p>
+<p class="text-sm text-muted mb-6">Q=Query（何を探しているか）、K=Key（各情報の見出し）、V=Value（実際の情報）。図書館で本を探すメタファー: Q=「記憶について知りたい」、K=各本のタイトル、V=本の中身。</p>
+
+<h3 class="text-lg font-bold mb-4 mt-8">コンテキストウィンドウ = ワーキングメモリ</h3>
+<p class="mb-4">LLM が一度に「見える」テキストの範囲。Claude の場合、約200Kトークン（日本語で約10万文字）。</p>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+  <div class="border border-border p-4 rounded-lg">
+    <div class="font-bold text-sm mb-2">パラメータ（≒意味記憶）</div>
+    <ul class="text-sm space-y-1 text-muted">
+      <li>学習時に獲得</li>
+      <li>推論時に変更不可</li>
+      <li>一般的な知識・言語能力</li>
+      <li>全ユーザー共通</li>
+    </ul>
+  </div>
+  <div class="border border-border p-4 rounded-lg">
+    <div class="font-bold text-sm mb-2">コンテキストウィンドウ（≒WM）</div>
+    <ul class="text-sm space-y-1 text-muted">
+      <li>推論時にリアルタイム入力</li>
+      <li>会話ごとにリセット</li>
+      <li>個別の文脈・指示</li>
+      <li>ユーザーごとに異なる</li>
+    </ul>
+  </div>
+</div>
+
+<div class="analogy-box p-5 rounded-r-lg mb-6">
+  <p class="font-medium mb-2">🔗 認知科学との接続</p>
+  <ul class="text-sm space-y-2">
+    <li><strong>Attention メカニズム ≈ 中央実行系の選択的注意</strong>: 人間の WM が「何に注目するか」を制御するように、Transformer の Attention は入力のどの部分に重みを置くかを動的に決定する</li>
+    <li><strong>コンテキストウィンドウの容量制限 ≈ Miller の 7±2</strong>: 人間の WM に容量制限があるように、LLM にもコンテキストウィンドウという制限がある。超えた情報は「忘れる」（正確には、見えなくなる）</li>
+    <li><strong>学習済みパラメータ ≈ 長期記憶</strong>: 一度学習されたら推論時には変更されない。ただし人間と違い「新しい経験で更新」されない（ファインチューニングは別）</li>
+  </ul>
+</div>
+
+<details class="mb-4 border border-border rounded-lg">
+  <summary class="px-4 py-3 font-medium text-sm">📄 論文リファレンス</summary>
+  <div class="px-4 pb-4 text-sm text-muted space-y-2">
+    <p>Vaswani, A., et al. (2017). Attention Is All You Need. <em>Advances in Neural Information Processing Systems</em>, 30.</p>
+    <p>Brown, T., et al. (2020). Language Models are Few-Shot Learners. <em>NeurIPS 2020</em>. (GPT-3 paper)</p>
+  </div>
+</details>
+`
+    },
+    reflect: {
+      label: '内省',
+      content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div>
+    <label class="block font-medium mb-2">Q1. LLM の「パラメータに蓄積された知識」と「コンテキストウィンドウに載せた情報」の違いを、人間の記憶の種類に例えて説明してみてください。</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m3-r1" placeholder="パラメータは教科書で学んだ一般知識（意味記憶）、コンテキストは今日の会議の内容（ワーキングメモリ）..."></textarea>
+  </div>
+  <div>
+    <label class="block font-medium mb-2">Q2. Attention メカニズムを「図書館で本を探す」メタファーで説明するとき、Query、Key、Value はそれぞれ何に対応しますか？</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m3-r2" placeholder="Query=探している情報のキーワード、Key=..."></textarea>
+  </div>
+  <div>
+    <label class="block font-medium mb-2">Q3. 以前、RAG と LLM の生成の仕組みを混同していましたが、今の理解でこの2つの違いを説明できますか？</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m3-r3" placeholder="LLMの生成は次トークン予測で...、RAGは外部情報を検索して..."></textarea>
+  </div>
+</div>
+`
+    },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    {
+      question: 'LLM の基本的な動作原理はどれ？',
+      options: ['データベースから回答を検索する', '与えられた文脈から次のトークンを予測する', '質問と回答のペアをルックアップする', '文章の意味を理解して論理的に推論する'],
+      correct: 1,
+      explanation: 'LLM の基本動作は「次トークン予測」。これまでのテキスト列が与えられたとき、次に来る可能性が最も高いトークンを予測し、それを繰り返して文章を生成する。「理解」や「推論」に見える振る舞いは、この予測能力の発現。'
+    },
+    {
+      question: 'Transformer の Attention メカニズムの本質的な機能はどれ？',
+      options: ['テキストを圧縮して保存する', '入力の各部分が他のどの部分に注目すべきかを動的に計算する', '文法エラーを検出して修正する', 'テキストを意味ベクトルに変換する'],
+      correct: 1,
+      explanation: 'Self-Attention は各トークンが入力中の他のトークンとの関連度（注意スコア）を動的に計算する。これにより「彼」が「医師」を指すといった長距離依存関係を捉えられる。認知科学の「選択的注意」に類似。'
+    },
+    {
+      question: 'LLM のコンテキストウィンドウと人間のワーキングメモリの共通点はどれ？',
+      options: ['どちらも永続的に情報を保持する', 'どちらも容量制限があり、超えると情報にアクセスできなくなる', 'どちらも学習によって容量が増える', 'どちらも情報の重要度で自動的にフィルタリングする'],
+      correct: 1,
+      explanation: '人間の WM は 7±2 チャンク、LLM は固定トークン数という容量制限がある。制限を超えた情報は処理できない。ただし人間の WM は注意によって「何を保持するか」を能動的に選択するが、LLM のコンテキストは機械的に「古い情報を落とす」か「全て保持して Attention で重み付け」する点が異なる。'
+    }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 4: RAG & External Memory
+// ────────────────────────────────────────────────────────────
+{
+  id: 'rag-external-memory',
+  num: '06',
+  phase: 2,
+  title: 'RAG と外部記憶',
+  subtitle: 'Embeddings, Vector Search, Retrieval-Augmented Generation',
+  icon: '🔍',
+  tabs: {
+    concept: {
+      label: '概念',
+      content: `
+<h2 class="text-2xl font-bold mb-6">LLM に「長期記憶」を持たせる</h2>
+
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>LLM のコンテキストウィンドウ（ワーキングメモリ）には容量制限がある。RAG は<strong>外部の知識ストア（長期記憶）から関連情報を検索し、コンテキストに注入する</strong>ことで、この制限を乗り越える技術。人間が「思い出す」プロセスの AI 版。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">エンベディング（Embedding）: 意味の数値表現</h3>
+<p class="mb-4">テキストを<strong>高次元のベクトル（数値の列）</strong>に変換する技術。意味的に近いテキストは、ベクトル空間上で近い位置に配置される。</p>
+
+<div class="bg-subtle p-5 rounded-lg mb-6">
+  <p class="font-mono text-sm mb-3">例（簡略化: 実際は1536次元以上）:</p>
+  <p class="font-mono text-xs">"医師が患者を診察する" → [0.82, -0.15, 0.67, 0.31, ...]</p>
+  <p class="font-mono text-xs">"ドクターが病人を診る" → [0.80, -0.13, 0.65, 0.29, ...]  ← 意味が近いので近い座標</p>
+  <p class="font-mono text-xs">"今日は天気がいい"     → [0.12, 0.88, -0.44, 0.05, ...]  ← 意味が遠いので遠い座標</p>
+</div>
+
+<p class="mb-4"><span class="paper-tag">数式メモ</span> 2つのベクトルの「近さ」はコサイン類似度で測定: cos(θ) = (A·B) / (|A||B|)。値は -1〜1 で、1 に近いほど意味的に類似。</p>
+
+<h3 class="text-lg font-bold mb-4 mt-8">Lewis et al. (2020): RAG の仕組み</h3>
+<p class="mb-4">RAG は3ステップで動作する:</p>
+
+<div class="space-y-4 mb-6">
+  <div class="flex gap-4 items-start">
+    <div class="bg-accent text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">1</div>
+    <div>
+      <div class="font-bold text-sm">Index（事前準備）</div>
+      <p class="text-sm text-muted">ドキュメントをチャンク分割 → 各チャンクをエンベディング → ベクトル DB に保存</p>
+    </div>
+  </div>
+  <div class="flex gap-4 items-start">
+    <div class="bg-accent text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">2</div>
+    <div>
+      <div class="font-bold text-sm">Retrieve（検索）</div>
+      <p class="text-sm text-muted">ユーザーの質問をエンベディング → ベクトル DB で類似度検索 → 上位 k 件を取得</p>
+    </div>
+  </div>
+  <div class="flex gap-4 items-start">
+    <div class="bg-accent text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">3</div>
+    <div>
+      <div class="font-bold text-sm">Generate（生成）</div>
+      <p class="text-sm text-muted">取得したチャンクをコンテキストに注入 → LLM が回答を生成</p>
+    </div>
+  </div>
+</div>
+
+<div class="bg-subtle p-5 rounded-lg mb-6 font-mono text-xs">
+<pre>ユーザー: "DPC制度の問題点は？"
+          ↓ エンベディング
+検索クエリ: [0.71, 0.23, -0.55, ...]
+          ↓ ベクトル DB 類似度検索
+ヒット:
+  [0.89] "DPC制度は急性期入院医療を対象とし..."
+  [0.85] "包括払い方式の課題として在院日数の..."
+  [0.79] "出来高払いとの混合方式による..."
+          ↓ コンテキストに注入
+LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
+</div>
+
+<h3 class="text-lg font-bold mb-4 mt-8">チャンキングとリランキング</h3>
+<p class="mb-4">RAG の精度を左右する2つの重要な技術:</p>
+<ul class="space-y-2 mb-6 text-sm">
+  <li><strong>チャンキング</strong>: ドキュメントをどう分割するか。小さすぎると文脈が失われ、大きすぎるとノイズが増える。段落単位、意味単位、オーバーラップ付きなど戦略がある</li>
+  <li><strong>リランキング</strong>: ベクトル検索の上位結果を、さらに精度の高いモデルで並び替え。「粗い検索 → 精密な再順位付け」の2段階で精度を上げる</li>
+</ul>
+
+<div class="analogy-box p-5 rounded-r-lg mb-6">
+  <p class="font-medium mb-2">🔗 認知科学との接続</p>
+  <ul class="text-sm space-y-2">
+    <li><strong>エンベディング ≈ 意味ネットワーク</strong>: 人間の記憶も、意味的に関連する概念がネットワーク状に結びついている（Collins & Quillian, 1969）。エンベディングはこれを数値空間で実現</li>
+    <li><strong>RAG の Retrieve ≈ 手がかり依存想起</strong>: 人間が「あのときの...」と手がかりを頼りに記憶を引き出すように、RAG はクエリを手がかりに関連情報を検索する</li>
+    <li><strong>チャンキング ≈ Miller のチャンク</strong>: 情報を適切な単位にまとめることで、ワーキングメモリ（コンテキスト）で効率的に扱える</li>
+    <li><strong>符号化特異性原理との接続</strong>: 記憶（チャンク）にメタデータ（文脈）を付与することで、検索時の「手がかり一致」が起きやすくなる</li>
+  </ul>
+</div>
+
+<details class="mb-4 border border-border rounded-lg">
+  <summary class="px-4 py-3 font-medium text-sm">📄 論文リファレンス</summary>
+  <div class="px-4 pb-4 text-sm text-muted space-y-2">
+    <p>Lewis, P., et al. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. <em>NeurIPS 2020</em>.</p>
+    <p>Karpukhin, V., et al. (2020). Dense Passage Retrieval for Open-Domain Question Answering. <em>EMNLP 2020</em>.</p>
+    <p>Collins, A. M., & Quillian, M. R. (1969). Retrieval time from semantic memory. <em>Journal of Verbal Learning and Verbal Behavior</em>, 8(2), 240-247.</p>
+  </div>
+</details>
+`
+    },
+    reflect: {
+      label: '内省',
+      content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div>
+    <label class="block font-medium mb-2">Q1. RAG の3ステップ（Index → Retrieve → Generate）を、図書館で調べものをするプロセスに例えて説明してみてください。</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m4-r1" placeholder="Index=本を分類して棚に並べる、Retrieve=..."></textarea>
+  </div>
+  <div>
+    <label class="block font-medium mb-2">Q2. LLM の次トークン予測と RAG の違いを、今度は明確に区別して説明できますか？</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m4-r2" placeholder="LLMは学習済みのパラメータから生成、RAGは外部ソースから関連情報を検索して..."></textarea>
+  </div>
+  <div>
+    <label class="block font-medium mb-2">Q3. あなたの Claude Code の MEMORY.md は、ある意味で「手動 RAG」です。MEMORY.md の仕組みとベクトル検索 RAG の違い・類似点を整理してみてください。</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m4-r3" placeholder="類似: 外部ストアから情報を取得してコンテキストに載せる。違い: 検索が手動/自動..."></textarea>
+  </div>
+</div>
+`
+    },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    {
+      question: 'エンベディングの本質的な役割はどれ？',
+      options: ['テキストを圧縮して保存容量を減らす', 'テキストの意味を数値ベクトルに変換し、意味的な類似度を計算可能にする', 'テキストの文法構造を解析する', 'テキストを暗号化してセキュリティを確保する'],
+      correct: 1,
+      explanation: 'エンベディングは「意味的に近いものは空間上で近い位置に配置される」という性質を持つベクトル表現。これにより「医師が患者を診る」と「ドクターが病人を診察する」が「近い」と判定できる。'
+    },
+    {
+      question: 'RAG と LLM 単体の最も本質的な違いはどれ？',
+      options: ['RAG のほうが回答速度が速い', 'RAG は外部知識ストアから関連情報を検索してコンテキストに注入する', 'RAG はインターネットに接続している', 'RAG は質問の意図をより正確に理解する'],
+      correct: 1,
+      explanation: 'LLM 単体は学習済みパラメータ（意味記憶）とコンテキストウィンドウ（WM）のみで動作。RAG は外部の知識ストア（長期記憶）から関連情報を「検索」して「WM に載せる」ことで、パラメータに含まれない最新・専門情報にアクセスできる。'
+    },
+    {
+      question: 'RAG における「チャンキング」の最大の課題はどれ？',
+      options: ['計算コストが高い', '小さすぎると文脈が失われ、大きすぎるとノイズが増えるトレードオフ', 'チャンクの順番を維持できない', '日本語テキストでは使えない'],
+      correct: 1,
+      explanation: 'チャンクが小さいと必要な文脈情報が失われ、大きいと無関係な情報がノイズとしてコンテキストに入る。このトレードオフは人間の「チャンキング」（情報の意味単位での分割）と同様の課題。'
+    }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 5: Agent Memory Architecture
+// ────────────────────────────────────────────────────────────
+{
+  id: 'agent-memory-arch',
+  num: '07',
+  phase: 2,
+  title: 'エージェント記憶アーキテクチャ',
+  subtitle: 'Generative Agents, MemGPT, Memory Design Patterns',
+  icon: '🏗️',
+  tabs: {
+    concept: {
+      label: '概念',
+      content: `
+<h2 class="text-2xl font-bold mb-6">エージェントはどう「覚え」「忘れ」「思い出す」のか</h2>
+
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>AI エージェントの記憶は、認知科学の知見を参考に<strong>複数の記憶システムを組み合わせて設計</strong>する。単にデータを保存するのではなく、「何を覚えるか」「どう整理するか」「いつ忘れるか」「どう想起するか」の4つの設計判断が品質を決める。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">Park et al. (2023): Generative Agents</h3>
+<p class="mb-4">Stanford/Google の研究で、25人の AI エージェントが仮想の町で「生活する」シミュレーション。記憶アーキテクチャが鍵:</p>
+
+<div class="space-y-4 mb-6">
+  <div class="border border-border p-4 rounded-lg">
+    <div class="font-bold text-sm mb-2">1. Memory Stream（記憶の流れ）</div>
+    <p class="text-sm text-muted">エージェントの全ての観察・行動を時系列で記録。人間のエピソード記憶に対応。各記憶には以下が付与される:</p>
+    <div class="flex gap-2 mt-2 flex-wrap">
+      <span class="paper-tag">作成時刻</span>
+      <span class="paper-tag">最終アクセス時刻</span>
+      <span class="paper-tag">重要度スコア (1-10)</span>
+    </div>
+  </div>
+  <div class="border border-border p-4 rounded-lg">
+    <div class="font-bold text-sm mb-2">2. Retrieval（想起）</div>
+    <p class="text-sm text-muted">3つの要素の重み付き合計で「今、何を思い出すか」を決定:</p>
+    <div class="bg-subtle p-3 rounded mt-2 font-mono text-xs">
+      score = α × recency + β × importance + γ × relevance
+    </div>
+    <ul class="text-sm mt-2 space-y-1 text-muted">
+      <li><strong>Recency（新しさ）</strong>: 最近の記憶ほど高スコア（指数減衰）</li>
+      <li><strong>Importance（重要度）</strong>: LLM が1-10で評定（「朝食を食べた」=1、「恋人にフラれた」=9）</li>
+      <li><strong>Relevance（関連性）</strong>: 現在の状況とのベクトル類似度</li>
+    </ul>
+  </div>
+  <div class="border border-border p-4 rounded-lg">
+    <div class="font-bold text-sm mb-2">3. Reflection（内省・抽象化）</div>
+    <p class="text-sm text-muted">蓄積された記憶から<strong>高次の洞察を生成</strong>する。エピソード記憶 → 意味記憶への変換に対応。</p>
+    <p class="text-sm mt-2">例: 「朝カフェで太郎に会った」「昼に太郎からメールが来た」「夕方太郎が誕生日パーティーを企画していた」→ 反省: <em>「太郎は社交的で、人を集めるのが好きなようだ」</em></p>
+  </div>
+</div>
+
+<h3 class="text-lg font-bold mb-4 mt-8">Packer et al. (2023): MemGPT</h3>
+<p class="mb-4">LLM に<strong>OS のような仮想メモリ管理</strong>を持たせるアプローチ:</p>
+
+<div class="bg-subtle p-5 rounded-lg mb-6 font-mono text-xs">
+<pre>┌─────────────────────────┐
+│  Main Context (WM)      │  ← LLM が直接見える
+│  ・System prompt         │
+│  ・Recent messages       │
+│  ・Retrieved memories    │
+├─────────────────────────┤
+│  Archival Memory (LTM)  │  ← ベクトル DB、無制限
+│  ・Past conversations    │
+│  ・Documents             │
+├─────────────────────────┤
+│  Recall Memory          │  ← 全会話履歴 DB
+│  ・Searchable by time   │
+│  ・Searchable by content│
+└─────────────────────────┘
+エージェント自身が memory_read / memory_write / memory_search を呼ぶ</pre>
+</div>
+
+<p class="mb-4">核心的なアイデア: エージェント自身が<strong>いつ何を保存し、いつ何を検索するかを判断する</strong>。人間が「これは覚えておこう」「あの件、どうだったっけ」と自律的に記憶操作するのと同じ。</p>
+
+<h3 class="text-lg font-bold mb-4 mt-8">エージェント記憶の設計パターン</h3>
+
+<div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0"><table class="w-full text-sm mb-6 border border-border rounded-lg overflow-hidden min-w-[500px]">
+  <thead class="bg-subtle">
+    <tr><th class="px-4 py-2 text-left">パターン</th><th class="px-4 py-2 text-left">認知科学対応</th><th class="px-4 py-2 text-left">実装例</th></tr>
+  </thead>
+  <tbody>
+    <tr class="border-t border-border"><td class="px-4 py-2 font-medium">Buffer Memory</td><td class="px-4 py-2">ワーキングメモリ</td><td class="px-4 py-2">直近N件の会話をコンテキストに保持</td></tr>
+    <tr class="border-t border-border"><td class="px-4 py-2 font-medium">Summary Memory</td><td class="px-4 py-2">記憶の圧縮・抽象化</td><td class="px-4 py-2">長い会話を要約してコンテキスト節約</td></tr>
+    <tr class="border-t border-border"><td class="px-4 py-2 font-medium">Vector Store Memory</td><td class="px-4 py-2">意味ネットワーク</td><td class="px-4 py-2">全記憶をベクトル化して類似度検索</td></tr>
+    <tr class="border-t border-border"><td class="px-4 py-2 font-medium">Entity Memory</td><td class="px-4 py-2">意味記憶のスキーマ</td><td class="px-4 py-2">人物・場所・概念ごとに情報を構造化</td></tr>
+    <tr class="border-t border-border"><td class="px-4 py-2 font-medium">Episodic Memory</td><td class="px-4 py-2">エピソード記憶</td><td class="px-4 py-2">体験を時系列で保存、文脈付き検索</td></tr>
+    <tr class="border-t border-border"><td class="px-4 py-2 font-medium">Reflection Memory</td><td class="px-4 py-2">メタ認知・内省</td><td class="px-4 py-2">蓄積記憶から高次パターンを抽出</td></tr>
+  </tbody>
+</table></div>
+
+<div class="analogy-box p-5 rounded-r-lg mb-6">
+  <p class="font-medium mb-2">🔗 あなたの6層設計との対応</p>
+  <table class="w-full text-sm mt-2">
+    <thead><tr><th class="text-left pb-2">あなたの設計</th><th class="text-left pb-2">エージェント記憶パターン</th><th class="text-left pb-2">Generative Agents</th></tr></thead>
+    <tbody>
+      <tr><td class="py-1">L6 ランタイム</td><td class="py-1">Buffer Memory</td><td class="py-1">Main Context</td></tr>
+      <tr><td class="py-1">L1 高頻度参照</td><td class="py-1">— (独自)</td><td class="py-1">Recency × Importance</td></tr>
+      <tr><td class="py-1">L3 実績 / L5 学習</td><td class="py-1">Episodic Memory</td><td class="py-1">Memory Stream</td></tr>
+      <tr><td class="py-1">L4 組織知</td><td class="py-1">Entity + Summary Memory</td><td class="py-1">Reflection</td></tr>
+      <tr><td class="py-1">L2 注釈・判断</td><td class="py-1">Reflection Memory</td><td class="py-1">Reflection</td></tr>
+    </tbody>
+  </table>
+  <p class="mt-3 text-sm">あなたの L1「高頻度参照ファイル」は、Generative Agents の Recency × Importance スコアリングに近い独自の工夫。</p>
+</div>
+
+<details class="mb-4 border border-border rounded-lg">
+  <summary class="px-4 py-3 font-medium text-sm">📄 論文リファレンス</summary>
+  <div class="px-4 pb-4 text-sm text-muted space-y-2">
+    <p>Park, J. S., et al. (2023). Generative Agents: Interactive Simulacra of Human Behavior. <em>UIST 2023</em>.</p>
+    <p>Packer, C., et al. (2023). MemGPT: Towards LLMs as Operating Systems. <em>arXiv preprint</em>.</p>
+    <p>Zhong, W., et al. (2024). MemoryBank: Enhancing Large Language Models with Long-Term Memory. <em>AAAI 2024</em>.</p>
+  </div>
+</details>
+`
+    },
+    reflect: {
+      label: '内省',
+      content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div>
+    <label class="block font-medium mb-2">Q1. Generative Agents の記憶想起スコア（recency × importance × relevance）の3要素を、あなたの日常の「思い出し方」で例えてみてください。</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m5-r1" placeholder="例: 朝のスタンドアップで昨日のタスクを思い出すとき、recencyが高いものが先に浮かぶ..."></textarea>
+  </div>
+  <div>
+    <label class="block font-medium mb-2">Q2. Generative Agents の「Reflection（内省）」は、あなたの6層設計のどのプロセスに相当しますか？現在の設計で Reflection は十分に機能していますか？</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m5-r2" placeholder="context-log → frameworks への昇格が Reflection に近い。ただし..."></textarea>
+  </div>
+  <div>
+    <label class="block font-medium mb-2">Q3. MemGPT の「エージェント自身が記憶操作を判断する」というアプローチと、あなたの MEMORY.md の「手動管理 + ルールベース自動化」の違いは何ですか？それぞれの長所・短所を書いてみてください。</label>
+    <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m5-r3" placeholder="MemGPT: 自律的だが判断ミスのリスク。手動: 精度は高いがスケールしない..."></textarea>
+  </div>
+</div>
+`
+    },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    {
+      question: 'Generative Agents の記憶想起スコアを構成する3要素はどれ？',
+      options: ['速度・正確性・網羅性', '新しさ（Recency）・重要度（Importance）・関連性（Relevance）', '時間・場所・人物', '類似度・距離・頻度'],
+      correct: 1,
+      explanation: 'score = α × recency + β × importance + γ × relevance。新しさ（忘却曲線に対応）、重要度（LLM が評定）、関連性（現在の状況とのベクトル類似度）の3要素で「今、何を思い出すか」を決定する。'
+    },
+    {
+      question: 'Generative Agents の「Reflection」プロセスの本質はどれ？',
+      options: ['過去の記憶を削除して容量を確保する', '蓄積されたエピソード記憶から高次の洞察（意味記憶）を生成する', '記憶の正確性をファクトチェックする', '記憶を時系列順に整理し直す'],
+      correct: 1,
+      explanation: 'Reflection はエピソード記憶（個別の体験）を抽象化して意味記憶（一般的な洞察）に変換するプロセス。「太郎に3回会った」→「太郎は社交的だ」という抽象化。認知科学の記憶固定化（consolidation）に対応。'
+    },
+    {
+      question: 'MemGPT の最大の設計上の特徴はどれ？',
+      options: ['大量のメモリを使用できる', 'エージェント自身がいつ何を保存・検索するかを判断する', '複数のLLMを同時に使用する', 'グラフデータベースで記憶を管理する'],
+      correct: 1,
+      explanation: 'MemGPT の核心は「エージェント自身が memory_read/memory_write/memory_search を呼ぶ」点。OS の仮想メモリ管理のように、LLM が自律的にメインコンテキスト（WM）とアーカイバルメモリ（LTM）間の情報移動を制御する。'
+    }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 7: Latest Papers (2024-25)
+// ────────────────────────────────────────────────────────────
+{
+  id: 'latest-papers',
+  num: '08',
+  phase: 2,
+  title: '最新論文サーベイ（2024-25）',
+  subtitle: 'Mem0, LangGraph Memory, Letta, Claude Memory',
+  icon: '🔬',
+  tabs: {
+    concept: { label: '概念', content: `
+<h2 class="text-2xl font-bold mb-6">エージェント記憶の最前線</h2>
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>2024-2025年のエージェント記憶研究は「記憶の自律管理」「マルチレイヤー記憶」「永続的パーソナライゼーション」の3方向に急速に進化。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">Mem0（2024）</h3>
+<p class="mb-4">ユーザーごとの長期記憶を自動抽出・管理するオープンソースフレームワーク。会話から「記憶に値する情報」を自動判別し、記憶の追加・更新・削除を自律実行。</p>
+<div class="bg-subtle p-4 rounded-lg mb-6 text-sm">
+  <p><strong>特徴</strong>: ベクトル検索 + グラフ検索のハイブリッド</p>
+  <p><strong>認知科学対応</strong>: 選択的注意（何に注目するか）+ 記憶の固定化（何を保存するか）の自動化</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">LangGraph Memory / LangMem（2024-25）</h3>
+<p class="mb-4">エージェントワークフロー内での構造化メモリ管理。Semantic Memory と Episodic Memory を明確に分離。Namespace でスコーピング。</p>
+<p class="mb-6 text-sm text-muted">→ Tulving のエピソード/意味記憶の分類をアーキテクチャレベルで実装</p>
+
+<h3 class="text-lg font-bold mb-4">Letta（旧 MemGPT, 2024-25）</h3>
+<p class="mb-4">MemGPT のプロダクション版。Core Memory（常時参照）+ Archival Memory（検索ベース）+ Recall Memory（全会話履歴）の3層構造。</p>
+
+<h3 class="text-lg font-bold mb-4">Claude Memory（Anthropic, 2025）</h3>
+<p class="mb-4">Claude.ai で実装された永続的メモリ。会話間で記憶が持続し、ユーザーが記憶の追加・削除を制御可能（透明性）。</p>
+
+<h3 class="text-lg font-bold mb-4 mt-8">共通トレンド</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+  <div class="border border-border p-4 rounded-lg"><div class="font-bold text-sm mb-1">1. 記憶の自律管理</div><p class="text-xs text-muted">エージェント自身が「何を覚えるか」を判断</p></div>
+  <div class="border border-border p-4 rounded-lg"><div class="font-bold text-sm mb-1">2. マルチレイヤー</div><p class="text-xs text-muted">短期 + 中期 + 長期の階層化</p></div>
+  <div class="border border-border p-4 rounded-lg"><div class="font-bold text-sm mb-1">3. 透明性と制御</div><p class="text-xs text-muted">ユーザーが記憶を確認・修正・削除</p></div>
+  <div class="border border-border p-4 rounded-lg"><div class="font-bold text-sm mb-1">4. セマンティック+エピソディック分離</div><p class="text-xs text-muted">事実知識と体験記憶を別系統管理</p></div>
+</div>
+
+<div class="analogy-box p-5 rounded-r-lg mb-6">
+  <p class="font-medium mb-2">🔗 あなたの6層設計との比較</p>
+  <p class="text-sm">あなたの MEMORY.md 設計は、これらの最新システムと多くの共通点を持つ。L1（高頻度参照）= Core Memory、L3/L5（実績/学習）= Episodic、L4（組織知）= Semantic、L6（ランタイム）= Working Memory。差分は「自律的な記憶管理」の部分 — 現在は手動 + ルールベースだが、Mem0/Letta のように AI 自身が判断するアプローチへの進化が可能。</p>
+</div>
+` },
+    reflect: { label: '内省', content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div><label class="block font-medium mb-2">Q1. Mem0 の「記憶に値する情報の自動判別」は、認知科学のどのプロセスに対応しますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m7-r1" placeholder="選択的注意と重要度スコアリング..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. あなたの6層設計を Letta の3層（Core/Archival/Recall）にマッピングするとどうなりますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m7-r2" placeholder="Core = L1+L2、Archival = L4、Recall = L3+L5..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 「透明性と制御」のトレンドが医療 AI で特に重要な理由は？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m7-r3" placeholder="医師が AI の記憶を信頼するには..."></textarea></div>
+</div>` },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    { question: '2024-25年のエージェント記憶研究の3つの共通トレンドに含まれないのはどれ？', options: ['記憶の自律管理', 'マルチレイヤー記憶', '記憶の完全な自動化（ユーザー制御なし）', '透明性と制御'], correct: 2, explanation: '最新トレンドでは「透明性と制御」が重視されている。ユーザーが記憶を確認・修正・削除できることが信頼構築の基盤。完全自動化はむしろアンチパターン。' },
+    { question: 'Letta（旧 MemGPT）の3層メモリ構造で、常時コンテキストに載る記憶はどれ？', options: ['Archival Memory', 'Recall Memory', 'Core Memory', 'Buffer Memory'], correct: 2, explanation: 'Core Memory は常時参照される記憶（ユーザー情報、重要な設定など）。Archival はベクトル検索、Recall は全会話履歴。' },
+    { question: 'LangMem がエピソード記憶と意味記憶を分離する設計上の利点はどれ？', options: ['ストレージ容量の節約', '体験の時系列性と知識の汎用性を別々に最適化できる', '検索速度の向上のみ', 'セキュリティの強化'], correct: 1, explanation: 'エピソード記憶は時系列・文脈が重要、意味記憶は抽象化・汎用性が重要。別系統で管理することで、それぞれに最適な保存・検索・忘却戦略を適用できる。Tulving の分類の工学的実装。' }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 8: Agentic UX
+// ────────────────────────────────────────────────────────────
+{
+  id: 'agentic-ux',
+  num: '09',
+  phase: 3,
+  title: 'Agentic UX の基本構造',
+  subtitle: 'GUI → Conversational → Agentic の進化',
+  icon: '🤝',
+  tabs: {
+    concept: { label: '概念', content: `
+<h2 class="text-2xl font-bold mb-6">UI パラダイムの進化と「委任」の設計</h2>
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>UI は「ユーザーが操作する」から「エージェントが提案・自律実行する」へ移行中。この移行は人間の「委任」の認知プロセスに基づいており、設計原則が根本から異なる。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">3つのパラダイムの進化</h3>
+<div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0"><table class="w-full text-sm mb-6 border border-border rounded-lg overflow-hidden min-w-[500px]">
+  <thead class="bg-subtle"><tr><th class="px-3 py-2 text-left"></th><th class="px-3 py-2 text-left">GUI（操作型）</th><th class="px-3 py-2 text-left">Conversational</th><th class="px-3 py-2 text-left">Agentic（委任型）</th></tr></thead>
+  <tbody>
+    <tr class="border-t border-border"><td class="px-3 py-2 font-medium">主導権</td><td class="px-3 py-2">ユーザー操作</td><td class="px-3 py-2">ユーザー指示→AI応答</td><td class="px-3 py-2">エージェントが提案・実行</td></tr>
+    <tr class="border-t border-border"><td class="px-3 py-2 font-medium">記憶</td><td class="px-3 py-2">ユーザー管理</td><td class="px-3 py-2">セッション内のみ</td><td class="px-3 py-2">長期記憶でパーソナライズ</td></tr>
+    <tr class="border-t border-border"><td class="px-3 py-2 font-medium">エラー</td><td class="px-3 py-2">Undo/Redo</td><td class="px-3 py-2">再指示</td><td class="px-3 py-2">説明+提案+承認</td></tr>
+    <tr class="border-t border-border"><td class="px-3 py-2 font-medium">モデル</td><td class="px-3 py-2">道具</td><td class="px-3 py-2">秘書</td><td class="px-3 py-2">代理人</td></tr>
+  </tbody>
+</table></div>
+
+<h3 class="text-lg font-bold mb-4">Shneiderman (2022): Human-Centered AI</h3>
+<p class="mb-4">高い自動化 + 高い人間の制御 = HCAI。自動化を上げると制御が下がるという仮定は間違い。重要なのは「いつ・どのように・どの程度人間が介入できるか」の設計。</p>
+
+<h3 class="text-lg font-bold mb-4 mt-8">Agentic UX の5つの設計原則</h3>
+<div class="space-y-6 mb-6">
+
+  <div class="border border-border p-5 rounded-lg">
+    <strong class="text-base">1. 委任の設計（Delegation Design）</strong>
+    <p class="text-sm mt-2 mb-3">何をどこまで委任するかのグラデーションを設計する。</p>
+    <p class="text-sm mb-2"><strong>なぜ重要か:</strong> 人間は「全自動」も「全手動」も嫌う。重要なのは *自分が選択できる感覚*。委任範囲が曖昧だと「勝手にやられた」か「何もしてくれない」の不満が生まれる。</p>
+    <p class="text-sm mb-2"><strong>具体例:</strong> Claude Code は bash コマンドの実行前に承認を求める（高リスク操作）が、ファイル読み取りは自動実行する（低リスク操作）。リスクレベルに応じた委任のグラデーション。</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs">
+      <div class="bg-success/5 border border-success/20 p-3 rounded-lg"><strong class="text-success">Do's</strong><ul class="mt-1 space-y-1 text-muted"><li>操作のリスクレベルに応じて承認/自動を分ける</li><li>委任範囲をユーザーが調整できる設定を提供</li><li>「何を自動でやったか」の事後報告を行う</li></ul></div>
+      <div class="bg-red-50 border border-red-200 p-3 rounded-lg"><strong class="text-red-600">Don'ts</strong><ul class="mt-1 space-y-1 text-muted"><li>全てを自動化して制御感を奪う</li><li>重要な意思決定を暗黙的に代行する</li><li>委任範囲を固定して変更不可にする</li></ul></div>
+    </div>
+    <p class="text-xs text-accent mt-3">🤔 <strong>設計者への問い:</strong> あなたのプロダクトで、ユーザーがエージェントに「任せたい」と「自分でやりたい」の境界線はどこにあるか？その境界線はユーザーによって異なるか？</p>
+  </div>
+
+  <div class="border border-border p-5 rounded-lg">
+    <strong class="text-base">2. 透明性（Transparency）</strong>
+    <p class="text-sm mt-2 mb-3">エージェントが「何を考え、何を記憶しているか」を可視化する。</p>
+    <p class="text-sm mb-2"><strong>なぜ重要か:</strong> 信頼は *理解* から生まれる。ブラックボックスは不信感を生み、特に医療のような高リスク領域では致命的。透明性がなければ、エラーの発見も改善フィードバックも不可能。</p>
+    <p class="text-sm mb-2"><strong>具体例:</strong> 医師向け AI が「この薬剤を推奨」と言うだけでは使われない。「過去3回の検査で値が上昇傾向 + ガイドライン X の推奨 → この薬剤」と推論過程を示すと信頼される。</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs">
+      <div class="bg-success/5 border border-success/20 p-3 rounded-lg"><strong class="text-success">Do's</strong><ul class="mt-1 space-y-1 text-muted"><li>推論の根拠と出典を常に提示する</li><li>確信度（高/中/低）を視覚的に表示</li><li>「何を記憶しているか」の一覧を提供</li></ul></div>
+      <div class="bg-red-50 border border-red-200 p-3 rounded-lg"><strong class="text-red-600">Don'ts</strong><ul class="mt-1 space-y-1 text-muted"><li>結論だけ提示して根拠を隠す</li><li>過度な情報開示で認知負荷を増やす</li><li>技術的詳細をそのまま見せる（ユーザーの言語に翻訳すべき）</li></ul></div>
+    </div>
+    <p class="text-xs text-accent mt-3">🤔 <strong>設計者への問い:</strong> 透明性の「最適な粒度」は何か？全てを見せると情報過多、何も見せないとブラックボックス。ユーザーが *必要なときに掘り下げられる* 階層設計は？</p>
+  </div>
+
+  <div class="border border-border p-5 rounded-lg">
+    <strong class="text-base">3. 段階的自律（Progressive Autonomy）</strong>
+    <p class="text-sm mt-2 mb-3">信頼関係の成熟に応じてエージェントの自律度を上げる。</p>
+    <p class="text-sm mb-2"><strong>なぜ重要か:</strong> 人間関係と同じく、最初から全面委任はない。「小さな成功体験の積み重ね」が信頼を形成し、委任範囲が広がる。初日から自律的すぎると過信/不信のどちらかに振れる。</p>
+    <p class="text-sm mb-2"><strong>具体例:</strong> Lv1: 情報提示のみ（「この検査値が異常です」）→ Lv2: 推薦付き（「〇〇の検査を推奨します」）→ Lv3: 承認ベース（「検査をオーダーしますか？」）→ Lv4: 自動実行+事後報告（「検査をオーダーしました」）</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs">
+      <div class="bg-success/5 border border-success/20 p-3 rounded-lg"><strong class="text-success">Do's</strong><ul class="mt-1 space-y-1 text-muted"><li>自律度レベルを明示的に設計する</li><li>レベルアップの条件（使用回数、成功率）を定義</li><li>ユーザーがいつでもレベルダウンできるようにする</li></ul></div>
+      <div class="bg-red-50 border border-red-200 p-3 rounded-lg"><strong class="text-red-600">Don'ts</strong><ul class="mt-1 space-y-1 text-muted"><li>最初から高い自律度で動かす</li><li>一度上げた自律度を下げる手段がない</li><li>レベルアップを暗黙的に行う（通知なし）</li></ul></div>
+    </div>
+    <p class="text-xs text-accent mt-3">🤔 <strong>設計者への問い:</strong> あなたのプロダクトにおける「自律度レベル」は何段階か？各レベル間の遷移条件は何か？ユーザーの専門性によって初期レベルを変えるべきか？</p>
+  </div>
+
+  <div class="border border-border p-5 rounded-lg">
+    <strong class="text-base">4. 優雅な引き継ぎ（Graceful Handoff）</strong>
+    <p class="text-sm mt-2 mb-3">エージェントが限界に達したとき、人間にスムーズに制御を戻す。</p>
+    <p class="text-sm mb-2"><strong>なぜ重要か:</strong> AI は必ず間違える。問題は「間違えること」ではなく「間違えたとき何が起きるか」。引き継ぎが不適切だと、ユーザーは文脈を失った状態で突然判断を迫られる（最悪のタイミングで最大の認知負荷）。</p>
+    <p class="text-sm mb-2"><strong>具体例:</strong> AI が鑑別診断で確信度が低い場合:「確信度が低いため判断を保留します。これまでの分析結果と検討した選択肢を以下にまとめます」→ 医師が文脈を把握した上で判断を引き継げる。</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs">
+      <div class="bg-success/5 border border-success/20 p-3 rounded-lg"><strong class="text-success">Do's</strong><ul class="mt-1 space-y-1 text-muted"><li>限界を自己検知して早めに伝える</li><li>引き継ぎ時に「ここまでの経緯」を要約提示</li><li>「なぜ引き継ぐのか」の理由を明示</li></ul></div>
+      <div class="bg-red-50 border border-red-200 p-3 rounded-lg"><strong class="text-red-600">Don'ts</strong><ul class="mt-1 space-y-1 text-muted"><li>確信度が低いまま自信ありげに回答</li><li>エラーメッセージだけ出して文脈を渡さない</li><li>引き継ぎ後にユーザーを放置する</li></ul></div>
+    </div>
+    <p class="text-xs text-accent mt-3">🤔 <strong>設計者への問い:</strong> エージェントが「わからない」と言えるタイミングと条件は何か？引き継ぎ時にユーザーに渡すべき「最小限の文脈情報」は何か？</p>
+  </div>
+
+  <div class="border border-border p-5 rounded-lg">
+    <strong class="text-base">5. 記憶の自覚（Memory Awareness）</strong>
+    <p class="text-sm mt-2 mb-3">ユーザーがエージェントの記憶を把握・修正・削除できる。</p>
+    <p class="text-sm mb-2"><strong>なぜ重要か:</strong> 記憶を持つ AI は「何を覚えているか」が振る舞いを決定する。ユーザーが記憶を制御できないと、誤った記憶に基づく不適切な行動を修正できない。また「何を覚えられているかわからない」不安はプライバシーの懸念に直結。</p>
+    <p class="text-sm mb-2"><strong>具体例:</strong> Claude の Memory 機能: ユーザーが記憶一覧を確認し、個別に削除できる。「覚えておいて」で明示的に追加、「忘れて」で削除。記憶に基づく行動時に「〇〇を記憶しているため」と引用。</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs">
+      <div class="bg-success/5 border border-success/20 p-3 rounded-lg"><strong class="text-success">Do's</strong><ul class="mt-1 space-y-1 text-muted"><li>記憶の一覧閲覧 UI を提供する</li><li>個別の記憶の編集・削除を可能にする</li><li>記憶に基づく行動時に出典を引用する</li></ul></div>
+      <div class="bg-red-50 border border-red-200 p-3 rounded-lg"><strong class="text-red-600">Don'ts</strong><ul class="mt-1 space-y-1 text-muted"><li>何を記憶しているか非公開にする</li><li>記憶の削除手段を提供しない</li><li>ユーザーの同意なく記憶を蓄積する</li></ul></div>
+    </div>
+    <p class="text-xs text-accent mt-3">🤔 <strong>設計者への問い:</strong> ユーザーは自分の AI の「記憶一覧」を見たことがあるか？見たいと思うか？記憶の透明性とシンプルさのバランスをどう取るか？</p>
+  </div>
+
+</div>
+
+<div class="analogy-box p-5 rounded-r-lg mb-6">
+  <p class="font-medium mb-2">🔗 認知科学との接続</p>
+  <p class="text-sm">人間はエージェントを「他の人間」のメンタルモデルで理解する（擬人化バイアス）。記憶を持つエージェントは「人間らしい」と感じられ、信頼構築が速い。委任の認知プロセス: 能力評価→信頼形成→権限委譲→結果確認。</p>
+</div>
+
+<details class="mb-4 border border-border rounded-lg">
+  <summary class="px-4 py-3 font-medium text-sm">📄 参考資料</summary>
+  <div class="px-4 pb-4 text-sm text-muted space-y-2">
+    <p>Shneiderman, B. (2022). Human-Centered AI. Oxford University Press.</p>
+    <p>Google PAIR. People + AI Guidebook.</p>
+    <p>Nielsen Norman Group (2023-2025). AI UX Research Series.</p>
+  </div>
+</details>` },
+    reflect: { label: '内省', content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div><label class="block font-medium mb-2">Q1. あなたの Claude Code 体験は、GUI/Conversational/Agentic のどこに位置しますか？具体例で説明してください。</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m8-r1" placeholder="タスク管理は Agentic に近い（自律的に提案）、コード編集は..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 「Progressive Autonomy」をあなたのプロダクトで実装するとしたら、どんなグラデーションが考えられますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m8-r2" placeholder="初期: 情報提示のみ → 中期: 推薦付き → 成熟期: 自動実行+事後確認"></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 従来の GUI デザインスキルのうち、Agentic UX でも活きるものと、新たに必要なスキルは？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m8-r3" placeholder="活きる: 情報設計、ユーザーリサーチ。新規: 委任設計、信頼校正..."></textarea></div>
+</div>` },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    { question: 'Shneiderman の HCAI の主張として正しいのはどれ？', options: ['自動化と人間の制御はトレードオフ', '自動化と人間の制御は独立した軸であり両方を同時に高められる', '完全自動化が最終目標', '人間の介入は最小限にすべき'], correct: 1, explanation: 'Shneiderman は「高い自動化 + 高い制御」の両立を主張。自動化を上げても、適切な設計により人間の制御を維持・強化できる。' },
+    { question: 'Agentic UX で「記憶」が果たす独自の役割はどれ？', options: ['処理速度の向上', '長期的な文脈によるパーソナライゼーションと信頼構築', 'ストレージコストの削減', 'UI の簡素化'], correct: 1, explanation: '記憶がAgentic UXの根幹。記憶により「自分を理解している」感覚が生まれ、委任への信頼が構築される。GUI/Conversational にはない、Agentic 固有の要素。' },
+    { question: '「Graceful Handoff」が特に重要な場面はどれ？', options: ['AI の推薦が正しい場合', 'AI が限界に達し人間の判断が必要な場合', 'ユーザーが初めてシステムを使う場合', 'バッチ処理を実行する場合'], correct: 1, explanation: 'Graceful Handoff はエージェントの限界を認識し、スムーズに人間に制御を戻す設計。医療 AI では「AI の確信度が低い症例」で特に重要。' }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 9: Trust Calibration
+// ────────────────────────────────────────────────────────────
+{
+  id: 'trust-calibration',
+  num: '10',
+  phase: 3,
+  title: 'Trust Calibration',
+  subtitle: '過信・過小信頼と医療 AI の信頼設計',
+  icon: '⚖️',
+  tabs: {
+    concept: { label: '概念', content: `
+<h2 class="text-2xl font-bold mb-6">AI への信頼は「高ければ良い」ものではない</h2>
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>適切に校正された信頼（Calibrated Trust）が必要。記憶を持つ AI は「何を覚えているか」「その記憶は正確か」の透明性が信頼の基盤。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">Lee & See (2004): Trust in Automation</h3>
+<p class="mb-4">信頼の3要素:</p>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+  <div class="bg-subtle p-4 rounded-lg text-center"><div class="font-bold text-sm">Performance</div><div class="text-xs text-muted">能力への信頼</div></div>
+  <div class="bg-subtle p-4 rounded-lg text-center"><div class="font-bold text-sm">Process</div><div class="text-xs text-muted">プロセスへの信頼</div></div>
+  <div class="bg-subtle p-4 rounded-lg text-center"><div class="font-bold text-sm">Purpose</div><div class="text-xs text-muted">意図への信頼</div></div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+  <div class="border border-red-200 bg-red-50 p-4 rounded-lg"><div class="font-bold text-sm mb-1">過信（Over-trust）</div><p class="text-xs">AI の限界を超えた依存。自動化バイアス、スキル劣化。「AI が大丈夫と言ったから大丈夫」</p></div>
+  <div class="border border-yellow-200 bg-yellow-50 p-4 rounded-lg"><div class="font-bold text-sm mb-1">過小信頼（Under-trust）</div><p class="text-xs">AI の能力を活用しない。ツールの不使用、非効率。</p></div>
+</div>
+
+<h3 class="text-lg font-bold mb-4">記憶と信頼の固有課題</h3>
+<div class="space-y-2 mb-6 text-sm">
+  <div class="border border-border p-3 rounded-lg"><strong>記憶の正確性</strong>: 覚えている内容が間違っていたら？</div>
+  <div class="border border-border p-3 rounded-lg"><strong>記憶の鮮度</strong>: 古い記憶に基づく不適切な判断</div>
+  <div class="border border-border p-3 rounded-lg"><strong>記憶の範囲</strong>: 「何を知っていて何を知らないか」の明示</div>
+  <div class="border border-border p-3 rounded-lg"><strong>プライバシー</strong>: 「何をどこまで覚えているか」のユーザー制御</div>
+</div>
+
+<h3 class="text-lg font-bold mb-4">医療 AI 信頼設計フレームワーク</h3>
+<ul class="space-y-2 text-sm mb-6">
+  <li><strong>信頼の可視化</strong>: 推薦と根拠を同時に表示</li>
+  <li><strong>不確実性の表示</strong>: 確信度スコア、エビデンスレベル</li>
+  <li><strong>記憶の出典表示</strong>: 「過去の○○のデータに基づく」</li>
+  <li><strong>Override の容易さ</strong>: 医師が AI の判断を容易に上書きできる UI</li>
+</ul>
+
+<details class="mb-4 border border-border rounded-lg">
+  <summary class="px-4 py-3 font-medium text-sm">📄 論文リファレンス</summary>
+  <div class="px-4 pb-4 text-sm text-muted space-y-2">
+    <p>Lee, J. D., & See, K. A. (2004). Trust in automation: Designing for appropriate reliance.</p>
+    <p>Parasuraman, R., & Riley, V. (1997). Humans and automation: Use, misuse, disuse, abuse.</p>
+  </div>
+</details>` },
+    reflect: { label: '内省', content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div><label class="block font-medium mb-2">Q1. あなた自身の Claude Code 利用で「過信」「過小信頼」の例はありますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-r1" placeholder="過信: コード生成をそのまま受け入れた。過小信頼: 記憶の提案を無視した..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 「記憶の出典表示」をあなたのプロダクトで実装するとしたら、どんな UI が考えられますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-r2" placeholder="推薦の横に小さく「2024/3/15 の情報に基づく」と表示..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 記憶を持つ AI の「過信」は、記憶を持たない AI の「過信」とどう違いますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-r3" placeholder="記憶がある分「この患者のことをわかっている」と思い込むリスク..."></textarea></div>
+</div>` },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    { question: 'Lee & See の信頼モデルで、AI の「判断プロセスの透明性」が支えるのはどの信頼要素？', options: ['Performance（能力）', 'Process（プロセス）', 'Purpose（意図）', 'Precision（精度）'], correct: 1, explanation: 'Process trust はシステムの判断プロセスへの理解と信頼。AI がどうやって結論に至ったかが見えると Process trust が高まる。' },
+    { question: '記憶を持つ AI に固有の信頼課題として最も重要なのはどれ？', options: ['処理速度の保証', '記憶の正確性と鮮度の透明性', 'UI のレスポンシブデザイン', 'マルチ言語対応'], correct: 1, explanation: '記憶を持つ AI では「覚えている内容が正しいか」「情報が古くないか」が信頼の根幹。記憶のない AI にはこの課題がない。' },
+    { question: 'Parasuraman & Riley の「自動化への過信」が特に危険な状況はどれ？', options: ['AI の精度が低い場合', 'AI の信頼性が高く、稀なエラーを見逃しやすい場合', 'ユーザーが初心者の場合', 'データ量が少ない場合'], correct: 1, explanation: '信頼性が高いシステムほどユーザーのモニタリングが低下し、稀だが重大なエラーを見逃す「自動化バイアス」が起きやすい。医療 AI で特に危険。' }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 10: Cognitive Load
+// ────────────────────────────────────────────────────────────
+{
+  id: 'cognitive-load',
+  num: '11',
+  phase: 3,
+  title: 'Cognitive Load と AI',
+  subtitle: '認知負荷理論と AI による負荷引き受け設計',
+  icon: '🧮',
+  tabs: {
+    concept: { label: '概念', content: `
+<h2 class="text-2xl font-bold mb-6">AI が人間の認知負荷を引き受ける</h2>
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>Sweller の認知負荷理論（CLT）を AI 設計に応用。AI は認知負荷そのものを引き受けることで、ユーザーの意思決定品質を向上させる。ただし AI 自体が新たな認知負荷を生むリスクもある。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">Sweller (1988): 3種類の認知負荷</h3>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">内在的負荷</div><div class="text-xs text-muted">タスク自体の複雑さ。要素の相互作用性で決まる。</div><div class="text-xs mt-2">医療例: 鑑別診断は多数の症状×疾患の組み合わせ</div></div>
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">外在的負荷</div><div class="text-xs text-muted">情報提示の不備に起因。UI設計で削減可能。</div><div class="text-xs mt-2">医療例: 情報が複数画面に分散</div></div>
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">本質的負荷</div><div class="text-xs text-muted">理解・学習のための有益な処理。</div><div class="text-xs mt-2">医療例: 症例の因果関係を深く考察</div></div>
+</div>
+
+<p class="mb-6"><strong>設計原則</strong>: 外在的負荷を最小化し、本質的負荷に認知資源を集中させる</p>
+
+<h3 class="text-lg font-bold mb-4">AI が引き受ける認知負荷のパターン</h3>
+<div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0"><table class="w-full text-sm mb-6 border border-border rounded-lg overflow-hidden min-w-[500px]">
+  <thead class="bg-subtle"><tr><th class="px-3 py-2 text-left">負荷の種類</th><th class="px-3 py-2 text-left">AI の引き受け方</th><th class="px-3 py-2 text-left">具体例</th></tr></thead>
+  <tbody>
+    <tr class="border-t border-border"><td class="px-3 py-2">記憶負荷</td><td class="px-3 py-2">記憶・保持を代行</td><td class="px-3 py-2">過去の診療記録を自動サマリー</td></tr>
+    <tr class="border-t border-border"><td class="px-3 py-2">検索負荷</td><td class="px-3 py-2">関連情報の探索を代行</td><td class="px-3 py-2">関連ガイドラインの自動提示</td></tr>
+    <tr class="border-t border-border"><td class="px-3 py-2">統合負荷</td><td class="px-3 py-2">複数情報源の統合</td><td class="px-3 py-2">検査値+症状+既往歴の統合分析</td></tr>
+    <tr class="border-t border-border"><td class="px-3 py-2">判断負荷</td><td class="px-3 py-2">選択肢の整理</td><td class="px-3 py-2">鑑別診断リストと確率表示</td></tr>
+  </tbody>
+</table></div>
+
+<h3 class="text-lg font-bold mb-4">Cognitive Offloading（認知オフローディング）</h3>
+<p class="mb-4">Risko & Gilbert (2016): 人間は認知的に困難なタスクを外部ツールに「オフロード」する。AI の記憶機能 = 高度な認知オフローディング。</p>
+<p class="mb-6 text-sm"><strong>リスク</strong>: 過度のオフローディングはスキル劣化を招く → Module 10 の Trust Calibration と接続</p>
+
+<div class="analogy-box p-5 rounded-r-lg mb-6">
+  <p class="font-medium mb-2">⚠️ AI が生む新たな認知負荷</p>
+  <ul class="text-sm space-y-1">
+    <li>AI の出力を<strong>評価する負荷</strong>（正しいか判断するコスト）</li>
+    <li>AI への指示を<strong>構成する負荷</strong>（プロンプトを考えるコスト）</li>
+    <li>AI の記憶を<strong>管理する負荷</strong>（何を覚えさせるか考えるコスト）</li>
+  </ul>
+  <p class="text-sm mt-2"><strong>設計の鍵</strong>: AI が引き受ける負荷 > AI が新たに生む負荷</p>
+</div>` },
+    reflect: { label: '内省', content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div><label class="block font-medium mb-2">Q1. 医師の診察プロセスで最も大きい認知負荷はどれ（内在的/外在的/本質的）？AI はどれを引き受けるべき？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m10-r1" placeholder="外在的負荷（情報の分散）を減らし、本質的負荷（臨床判断）に集中させる..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. Claude Code を使っているとき、「AI が生む新たな認知負荷」を感じる場面は？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m10-r2" placeholder="長い出力を読んで判断する負荷、プロンプトを最適化する負荷..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 「AI の記憶」は認知負荷をどう変えますか？記憶がない場合と比較して。</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m10-r3" placeholder="記憶があると: 文脈再構築の負荷が消える。一方で記憶管理の負荷が新たに生まれる..."></textarea></div>
+</div>` },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    { question: 'Sweller の CLT で、UI 改善で最も効果的に削減できる負荷はどれ？', options: ['内在的負荷', '外在的負荷', '本質的負荷', '全て同等'], correct: 1, explanation: '外在的負荷は情報提示の不備に起因するため、UI/UX 設計で直接削減できる。内在的負荷はタスク固有、本質的負荷は削減すべきでない。' },
+    { question: '「AI が引き受ける負荷 > AI が新たに生む負荷」の設計原則に違反する例はどれ？', options: ['過去の診療記録を自動サマリー', '50ページの詳細レポートを毎回生成（読む負荷が大きい）', '関連ガイドラインの3行要約', 'アラートを重要度順にソート'], correct: 1, explanation: '大量の出力は「評価する認知負荷」を生む。AI が情報を圧縮・整理して提示することで初めてネットの負荷削減になる。' },
+    { question: 'Cognitive Offloading のリスクとして正しいのはどれ？', options: ['処理速度が低下する', '過度のオフローディングによるスキル劣化', 'ストレージ容量が不足する', 'ネットワーク負荷が増大する'], correct: 1, explanation: 'Risko & Gilbert が指摘: 外部ツールに認知を依存しすぎると、その能力自体が退化する。医療 AI では「AI なしでは診断できない」状態を避ける設計が必要。' }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 11: Shared Context & Grounding
+// ────────────────────────────────────────────────────────────
+{
+  id: 'shared-context',
+  num: '12',
+  phase: 3,
+  title: 'Shared Context & Grounding',
+  subtitle: 'Human-AI の共有メンタルモデル',
+  icon: '🔗',
+  tabs: {
+    concept: { label: '概念', content: `
+<h2 class="text-2xl font-bold mb-6">エージェントとの「共通理解」をどう築くか</h2>
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>Clark の Common Ground 理論: 効率的なコミュニケーションは対話者間の共有知識（Common Ground）が大きいほど可能。AI エージェントとの協働でも「相互理解」の設計が不可欠。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">Clark (1996): Common Ground Theory</h3>
+<ul class="text-sm space-y-2 mb-6">
+  <li><strong>Common Ground</strong> = 対話者間で共有されている知識・信念・前提の集合</li>
+  <li><strong>Grounding</strong> = 対話を通じて Common Ground を構築・更新するプロセス</li>
+  <li>Common Ground が大きいほど省略・暗黙の前提が使え、コミュニケーションが効率化</li>
+</ul>
+
+<h3 class="text-lg font-bold mb-4">Human-AI Grounding の固有課題</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+  <div class="border border-border p-3 rounded-lg text-sm"><strong>非対称性</strong><br>AI は表情・トーンを部分的にしか理解できない</div>
+  <div class="border border-border p-3 rounded-lg text-sm"><strong>不透明性</strong><br>ユーザーは AI の「知識状態」を把握しにくい</div>
+  <div class="border border-border p-3 rounded-lg text-sm"><strong>記憶の非対称</strong><br>AI は前回の会話を覚えていないかも（セッション断絶）</div>
+  <div class="border border-border p-3 rounded-lg text-sm"><strong>進化する知識</strong><br>AI の能力が更新され、ユーザーの期待とズレる</div>
+</div>
+
+<h3 class="text-lg font-bold mb-4">Progressive Disclosure of Memory</h3>
+<p class="mb-4">エージェントの記憶をユーザーに伝える4つの設計パターン:</p>
+<div class="space-y-2 mb-6 text-sm">
+  <div class="border border-border p-3 rounded-lg"><strong>1. Ambient Awareness</strong>: 「前回の話の続きですね」— 記憶を暗黙的に示す</div>
+  <div class="border border-border p-3 rounded-lg"><strong>2. Explicit Reference</strong>: 「3/10に○○とおっしゃっていましたが」— 具体的引用</div>
+  <div class="border border-border p-3 rounded-lg"><strong>3. Memory Dashboard</strong>: 全記憶を閲覧・編集できる UI</div>
+  <div class="border border-border p-3 rounded-lg"><strong>4. Memory Negotiation</strong>: 「覚えておきますか？」— 保存をユーザーと合意</div>
+</div>
+
+<div class="analogy-box p-5 rounded-r-lg mb-6">
+  <p class="font-medium mb-2">🔗 Shared Mental Model（Mathieu et al., 2000）</p>
+  <p class="text-sm">チームパフォーマンスはメンバー間の Shared Mental Model の質に比例。Human-AI チームでも同様: ユーザーが「AI は何が得意で何が苦手か」を正確に把握しているほどパフォーマンスが上がる。記憶を持つ AI は「共有する記憶」が増えるほど Shared Mental Model が豊かに。</p>
+</div>` },
+    reflect: { label: '内省', content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div><label class="block font-medium mb-2">Q1. あなたと Claude Code の間の Common Ground は、セッションを重ねるごとにどう変化していますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m11-r1" placeholder="MEMORY.md が育つことで共通理解が拡大。ただしセッション切れで断絶する部分も..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 4つの Memory Disclosure パターンのうち、医療 AI に最適なのはどれ？その理由は？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m11-r2" placeholder="Explicit Reference が最適。医療では根拠の明示が必須..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 多職種連携（医師・看護師・薬剤師）における「AI を介した Shared Memory」はどう設計すべき？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m11-r3" placeholder="各職種が記録した情報を AI が統合し、アクセス権限を分けて..."></textarea></div>
+</div>` },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    { question: 'Clark の Common Ground Theory で、Grounding の本質はどれ？', options: ['情報を一方的に伝えること', '対話を通じて共有知識を構築・更新するプロセス', 'データベースの共有', '全情報の公開'], correct: 1, explanation: 'Grounding は対話を通じた相互確認のプロセス。「伝えた」だけでなく「理解された」ことの確認まで含む。' },
+    { question: 'Progressive Disclosure of Memory で最も透明性が高いのはどれ？', options: ['Ambient Awareness', 'Explicit Reference', 'Memory Dashboard', 'Memory Negotiation'], correct: 2, explanation: 'Memory Dashboard はエージェントの全記憶を閲覧・編集でき、最も高い透明性を提供する。ただし認知負荷も高いためバランスが必要。' },
+    { question: 'Shared Mental Model が Human-AI チームで重要な理由はどれ？', options: ['計算速度が向上する', 'ユーザーが AI の能力と限界を正しく把握でき、適切な委任ができる', 'AI の学習データが増える', 'UI のデザインが改善される'], correct: 1, explanation: 'Shared Mental Model が正確であるほど、ユーザーは AI に適切な期待を持ち、過信も過小信頼も回避できる。Calibrated Trust の基盤。' }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 12: Memory as UX Pattern
+// ────────────────────────────────────────────────────────────
+{
+  id: 'memory-ux-pattern',
+  num: '13',
+  phase: 4,
+  title: 'Memory as UX Pattern',
+  subtitle: '記憶が生む6つの体験パターン',
+  icon: '✨',
+  tabs: {
+    concept: { label: '概念', content: `
+<h2 class="text-2xl font-bold mb-6">「記憶がある」ことで何が変わるか</h2>
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>記憶は新しいカテゴリの体験を可能にする。パーソナライゼーション、文脈継続、予測的支援、関係性構築。これらを「記憶 UX パターン」として体系化する。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">6つの体験パターン</h3>
+<div class="space-y-5 mb-8">
+
+  <div class="border border-border p-5 rounded-lg">
+    <div class="flex items-center gap-2 mb-2"><span class="text-lg">🔄</span><strong>1. 文脈継続（Continuity）</strong></div>
+    <p class="text-sm mb-2">前回の会話・作業の続きをシームレスに再開。文脈を再構築する手間がゼロ。</p>
+    <p class="text-sm mb-2"><strong>なぜ強力か:</strong> 認知負荷の最大の原因は「文脈の再構築」。久しぶりの患者、中断したプロジェクト、過去の議論の続き — 人間の記憶では限界がある場面で AI が完全な文脈を復元する。</p>
+    <p class="text-sm mb-2"><strong>医療での応用:</strong> 3ヶ月ぶりの再診患者。AI が「前回: HbA1c 7.2%、食事指導を実施、次回検査で改善確認予定」と前回の文脈を瞬時に提示。医師はカルテを遡る時間をゼロにできる。</p>
+    <p class="text-xs text-accent">🤔 この体験で *ユーザーが何を感じるべきか*: 「中断していたことを忘れていい安心感」</p>
+  </div>
+
+  <div class="border border-border p-5 rounded-lg">
+    <div class="flex items-center gap-2 mb-2"><span class="text-lg">👤</span><strong>2. 個人化（Personalization）</strong></div>
+    <p class="text-sm mb-2">ユーザーの好み・スタイル・習慣を学習して適応。使うほどフィットする。</p>
+    <p class="text-sm mb-2"><strong>なぜ強力か:</strong> 意味記憶（ユーザーについての一般化された知識）が蓄積されることで「説明しなくてもわかってくれる」体験が生まれる。毎回の設定・説明コストがゼロに近づく。</p>
+    <p class="text-sm mb-2"><strong>医療での応用:</strong> 医師ごとの診療スタイルを学習。「A先生はエビデンスレベルを重視」「B先生は患者の QOL を優先」→ 推薦の提示方法を自動調整。</p>
+    <p class="text-xs text-accent">🤔 この体験で *ユーザーが何を感じるべきか*: 「自分専用にカスタマイズされている感覚」</p>
+  </div>
+
+  <div class="border border-border p-5 rounded-lg">
+    <div class="flex items-center gap-2 mb-2"><span class="text-lg">🔮</span><strong>3. 予測的支援（Anticipation）</strong></div>
+    <p class="text-sm mb-2">ユーザーが必要とする情報を、求められる前に先回りして提供。</p>
+    <p class="text-sm mb-2"><strong>なぜ強力か:</strong> 展望的記憶（「将来○○が必要になる」という記憶）は人間の記憶で最も脆弱な部分。AI が代わりに「次に何が必要か」を覚えていてくれることの価値は極めて高い。</p>
+    <p class="text-sm mb-2"><strong>医療での応用:</strong> 「この患者は前回の検査から3ヶ月経過。次回のフォローアップ検査の時期です」を診察開始時に自動提示。医師の「次にやるべきこと」の想起負荷を引き受ける。</p>
+    <p class="text-xs text-accent">🤔 この体験で *ユーザーが何を感じるべきか*: 「言わなくても気づいてくれる頼もしさ」（ただし過度だと監視感になる → アンチパターン参照）</p>
+  </div>
+
+  <div class="border border-border p-5 rounded-lg">
+    <div class="flex items-center gap-2 mb-2"><span class="text-lg">💬</span><strong>4. 関係性構築（Relationship Building）</strong></div>
+    <p class="text-sm mb-2">記憶の蓄積が「この AI は自分を理解している」という感覚を生み、長期的な信頼関係に発展。</p>
+    <p class="text-sm mb-2"><strong>なぜ強力か:</strong> Shared Mental Model の深化により、コミュニケーションコストが下がり、委任範囲が広がる。「この AI とは長く付き合いたい」というリテンションに直結。</p>
+    <p class="text-sm mb-2"><strong>医療での応用:</strong> 病院全体で導入された AI が、各医師の診療記録と共に成長。転院時に「この AI は私の判断基準を理解している」と感じさせるレベルの個人化。</p>
+    <p class="text-xs text-accent">🤔 この体験で *ユーザーが何を感じるべきか*: 「一緒に成長してきたパートナー感」</p>
+  </div>
+
+  <div class="border border-border p-5 rounded-lg">
+    <div class="flex items-center gap-2 mb-2"><span class="text-lg">📈</span><strong>5. 学習・成長支援（Learning & Growth）</strong></div>
+    <p class="text-sm mb-2">ユーザーの成長過程を記憶し、支援レベルを適応的に調整する。</p>
+    <p class="text-sm mb-2"><strong>なぜ強力か:</strong> Vygotsky の最近接発達領域（ZPD）: 学習者が「一人ではできないが、支援があればできる」領域こそ学習が起きる。AI がユーザーの現在地を記憶し、ZPD に合わせた支援を提供。</p>
+    <p class="text-sm mb-2"><strong>医療での応用:</strong> 研修医の診断スキル成長に合わせて、最初は詳細な鑑別診断リストを提示 → 経験を積むにつれ「見落としやすい鑑別のみ」に絞る。</p>
+    <p class="text-xs text-accent">🤔 この体験で *ユーザーが何を感じるべきか*: 「AI が自分の成長を認めてくれている感覚」</p>
+  </div>
+
+  <div class="border border-border p-5 rounded-lg">
+    <div class="flex items-center gap-2 mb-2"><span class="text-lg">📋</span><strong>6. 説明責任（Accountability）</strong></div>
+    <p class="text-sm mb-2">過去の判断・推薦の根拠を記憶から引いて、いつでも説明できる。</p>
+    <p class="text-sm mb-2"><strong>なぜ強力か:</strong> 人間は「なぜそうしたか」を忘れる（ソースモニタリングの失敗）。AI が判断の根拠と経緯を記憶していれば、事後のレビュー・監査・改善が可能になる。医療では法的にも重要。</p>
+    <p class="text-sm mb-2"><strong>医療での応用:</strong> 「この薬剤に変更した理由は、2025/12/15 の検査で腎機能低下を検出し、ガイドライン X の推奨に基づいて減量したため」— 判断のトレーサビリティを AI が担保。</p>
+    <p class="text-xs text-accent">🤔 この体験で *ユーザーが何を感じるべきか*: 「過去の判断を安心して振り返れる安心感」</p>
+  </div>
+
+</div>
+
+<h3 class="text-lg font-bold mb-4">アンチパターン: 記憶が壊す体験</h3>
+<div class="space-y-4 mb-6">
+  <div class="border border-red-200 bg-red-50 p-4 rounded-lg">
+    <strong class="text-red-700">Uncanny Memory（不気味な記憶）</strong>
+    <p class="text-sm mt-1">「なぜそんなことまで覚えているの？」と感じさせる。</p>
+    <p class="text-xs text-muted mt-2"><strong>原因:</strong> 記憶の出典開示なしに私的な情報を引用する。<strong>対策:</strong> 記憶を使うとき「〇月〇日に伺った内容ですが」と出典を明示する（Progressive Disclosure of Memory）。</p>
+    <p class="text-xs text-accent mt-1">🤔 <strong>問い:</strong> あなたのプロダクトで「覚えていて嬉しい」と「覚えていて怖い」の境界線はどこか？</p>
+  </div>
+  <div class="border border-red-200 bg-red-50 p-4 rounded-lg">
+    <strong class="text-red-700">Stale Memory（古い記憶）</strong>
+    <p class="text-sm mt-1">更新されていない古い情報に基づく不適切な判断。<strong>医療では最も危険。</strong></p>
+    <p class="text-xs text-muted mt-2"><strong>原因:</strong> 忘却・更新の設計不足。<strong>対策:</strong> 記憶に鮮度メタデータを付与し「この情報は6ヶ月前のものです」と警告表示。TTL 超過記憶は自動的に信頼度を下げる。</p>
+    <p class="text-xs text-accent mt-1">🤔 <strong>問い:</strong> 「陳腐化した記憶」を検出する仕組みはあるか？情報の種類ごとに鮮度の閾値は異なるか？</p>
+  </div>
+  <div class="border border-red-200 bg-red-50 p-4 rounded-lg">
+    <strong class="text-red-700">Privacy Breach（文脈の越境）</strong>
+    <p class="text-sm mt-1">ある文脈で話したことが、意図しない別の文脈で漏れる。</p>
+    <p class="text-xs text-muted mt-2"><strong>原因:</strong> 記憶のスコーピング不足。<strong>対策:</strong> 記憶にコンテキスト境界（プロジェクト、対話相手、目的）を設定し、境界を超える参照時は明示的な確認を挟む。</p>
+    <p class="text-xs text-accent mt-1">🤔 <strong>問い:</strong> 多職種連携で「看護師に話したこと」を「医師に共有していいか」をどう判定するか？</p>
+  </div>
+  <div class="border border-red-200 bg-red-50 p-4 rounded-lg">
+    <strong class="text-red-700">Over-Personalization（過度な個人化）</strong>
+    <p class="text-sm mt-1">偏った提案、フィルターバブル、多様な選択肢の排除。</p>
+    <p class="text-xs text-muted mt-2"><strong>原因:</strong> 過去の傾向への過剰適応。<strong>対策:</strong> 「いつもと違う選択肢」を意図的に混ぜる。パーソナライゼーションの強度をユーザーが調整可能にする。</p>
+    <p class="text-xs text-accent mt-1">🤔 <strong>問い:</strong> 医師が「いつもの処方」を選び続ける傾向を AI が強化してしまうリスクは？新しいエビデンスへの気づきをどう確保するか？</p>
+  </div>
+</div>` },
+    reflect: { label: '内省', content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div><label class="block font-medium mb-2">Q1. あなたの Claude Code 体験で、6つのパターンのうちどれが最も価値を感じましたか？具体例で。</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m12-r1" placeholder="Continuity が最大。前のセッションの文脈を引き継げるので..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 4つのアンチパターンのうち、医療 AI で最もリスクが高いのはどれ？なぜ？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m12-r2" placeholder="Stale Memory が最も危険。古い検査値に基づく推薦は..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 「Anticipation（予測的支援）」を実現するために、エージェントはどんな記憶を持つ必要がありますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m12-r3" placeholder="行動パターンの記憶、スケジュールの記憶、過去の類似状況の記憶..."></textarea></div>
+</div>` },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    { question: '記憶 UX パターンの「Anticipation」の認知科学的基盤はどれ？', options: ['エピソード記憶のみ', '展望的記憶（未来の行動の記憶）+ 文脈手がかり', '手続き記憶', '感覚記憶'], correct: 1, explanation: '予測的支援は「この文脈ではユーザーが次に○○を必要とする」という展望的記憶と、現在の文脈による想起の組み合わせ。' },
+    { question: '「Uncanny Memory」アンチパターンの対策として最も適切なのはどれ？', options: ['記憶を隠す', '記憶の出典と理由をユーザーに開示する（Progressive Disclosure）', '記憶量を制限する', '個人情報を一切記憶しない'], correct: 1, explanation: '不気味さの原因は「なぜ覚えているか」が不透明なこと。出典開示により合理性が理解され、不気味さが解消する。' },
+    { question: '医療 AI で最も危険なアンチパターンはどれ？', options: ['Uncanny Memory', 'Stale Memory（古い記憶に基づく不適切な判断）', 'Over-Personalization', 'Privacy Breach'], correct: 1, explanation: '古い検査値や陳腐化した情報に基づく推薦は直接的な医療リスク。記憶の鮮度管理と「情報の更新日」の明示が必須。' }
+  ]
+},
+
+// ────────────────────────────────────────────────────────────
+// Module 13: Design Principles
+// ────────────────────────────────────────────────────────────
+{
+  id: 'design-principles',
+  num: '14',
+  phase: 4,
+  title: '記憶の設計原則',
+  subtitle: '何を覚え / 忘れ / 想起するかのフレームワーク',
+  icon: '📐',
+  tabs: {
+    concept: { label: '概念', content: `
+<h2 class="text-2xl font-bold mb-6">エージェント記憶の4つの設計次元</h2>
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>Phase 1-3 の知見を統合し、「何を覚えるか」「どう整理するか」「いつ忘れるか」「どう想起するか」の4次元で記憶を設計するフレームワーク。</p>
+</div>
+
+<div class="space-y-6 mb-6">
+
+  <div class="border-l-4 border-accent p-5 bg-accent/5 rounded-r-lg">
+    <h3 class="font-bold mb-2">設計原則 1: 符号化（何を覚えるか）</h3>
+    <p class="text-sm mb-3"><strong>なぜ重要か:</strong> 「ゴミを入れればゴミが出る」。符号化の品質が保持・検索の精度を決定する。重要でない情報を大量に記憶するとノイズが増え、本当に必要な記憶の検索精度が下がる。</p>
+    <ul class="text-sm space-y-2 mb-3">
+      <li><strong>重要度フィルタリング</strong>: 全てを覚えるのではなくスコアリングで選別（Park et al. の 1-10 スケール）</li>
+      <li><strong>処理の深さ</strong>: 表面的ログでなく意味レベルの構造化（Craik & Lockhart）。「何が起きたか」だけでなく「なぜ重要か」まで記録</li>
+      <li><strong>メタデータ付与</strong>: 時刻、文脈、関係者、カテゴリ（符号化特異性原理: 想起精度を左右）</li>
+      <li><strong>ユーザー制御</strong>: 「覚えて」「忘れて」の明示的インターフェース</li>
+    </ul>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+      <div class="bg-white p-3 rounded-lg border border-success/30"><strong class="text-success">Do</strong>: 記憶保存時に「この情報が将来どう使われるか」を考えて構造化する</div>
+      <div class="bg-white p-3 rounded-lg border border-red-200"><strong class="text-red-600">Don't</strong>: 全ての会話をそのまま保存する（ノイズの温床）</div>
+    </div>
+    <p class="text-xs text-accent mt-3">🤔 <strong>問い:</strong> あなたのプロダクトで「覚える価値がある情報」と「ノイズ」を分ける基準は何か？その基準は誰が決めるか（AI? ユーザー? 両方?）</p>
+  </div>
+
+  <div class="border-l-4 border-success p-5 bg-success/5 rounded-r-lg">
+    <h3 class="font-bold mb-2">設計原則 2: 保持（どう整理するか）</h3>
+    <p class="text-sm mb-3"><strong>なぜ重要か:</strong> 記憶をどう整理するかで検索効率が桁違いに変わる。整理されていない倉庫から物を見つけるのは困難だが、カテゴリ分け+ラベル付けされた棚からは瞬時に取り出せる。</p>
+    <ul class="text-sm space-y-2 mb-3">
+      <li><strong>記憶タイプの分離</strong>: エピソード（体験ログ）/ 意味（知識・ルール）/ 手続き（パターン）を別系統管理。検索・更新の最適化が異なるため</li>
+      <li><strong>階層化</strong>: 短期（バッファ、数時間）→ 中期（セッション、数日）→ 長期（永続）の TTL 設計</li>
+      <li><strong>固定化プロセス</strong>: 定期的な Reflection でエピソード→意味記憶への昇格（M4 の睡眠中固定化に対応）</li>
+      <li><strong>インデックス設計</strong>: 海馬的な参照テーブルで「何がどこにあるか」を O(1) で引ける構造</li>
+    </ul>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+      <div class="bg-white p-3 rounded-lg border border-success/30"><strong class="text-success">Do</strong>: 記憶タイプごとに最適な保存形式・検索方法を設計する</div>
+      <div class="bg-white p-3 rounded-lg border border-red-200"><strong class="text-red-600">Don't</strong>: 全ての記憶を同じフラットなリストに放り込む</div>
+    </div>
+    <p class="text-xs text-accent mt-3">🤔 <strong>問い:</strong> エピソード記憶が意味記憶に「昇格」する判定基準は何か？人間は睡眠中に無意識にやっているが、エージェントではどうトリガーするか？</p>
+  </div>
+
+  <div class="border-l-4 border-warning p-5 bg-warning/5 rounded-r-lg">
+    <h3 class="font-bold mb-2">設計原則 3: 忘却（いつ忘れるか）</h3>
+    <p class="text-sm mb-3"><strong>なぜ重要か:</strong> 全てを覚えるシステムは、何も覚えないシステムと同じくらい役に立たない。忘却はノイズ除去であり、重要な記憶の検索精度を維持する *積極的な機能*（M3: 忘却は適応的機能）。</p>
+    <ul class="text-sm space-y-2 mb-3">
+      <li><strong>TTL 減衰</strong>: 記憶タイプに応じた減衰速度。エピソード（数週間）> 意味（数ヶ月）> 手続き（変更されるまで永続）</li>
+      <li><strong>アクセスリフレッシュ</strong>: 参照されるたびに TTL リセット（Ebbinghaus の間隔反復を実装）</li>
+      <li><strong>能動的忘却</strong>: ユーザーの削除要求、プライバシー要件（GDPR の忘れられる権利）、情報の陳腐化</li>
+      <li><strong>適応的忘却</strong>: 検索精度が下がってきたら不要記憶を自動剪定（望ましい困難）</li>
+    </ul>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+      <div class="bg-white p-3 rounded-lg border border-success/30"><strong class="text-success">Do</strong>: 記憶タイプ別に適切な TTL を設計し、アクセス頻度でリフレッシュする</div>
+      <div class="bg-white p-3 rounded-lg border border-red-200"><strong class="text-red-600">Don't</strong>: 全記憶を永久保持する（Stale Memory アンチパターンの温床）</div>
+    </div>
+    <p class="text-xs text-accent mt-3">🤔 <strong>問い:</strong> 医療データの法的保存義務と「忘却の設計」はどう両立するか？保存はするが「検索対象から外す」というアーカイブ設計は有効か？</p>
+  </div>
+
+  <div class="border-l-4 border-ink p-5 bg-ink/5 rounded-r-lg">
+    <h3 class="font-bold mb-2">設計原則 4: 想起（どう想起するか）</h3>
+    <p class="text-sm mb-3"><strong>なぜ重要か:</strong> どれだけ良い記憶を保持していても、適切なタイミングで適切な記憶を引き出せなければ価値はゼロ。検索の設計が記憶システム全体の体験品質を決定する。</p>
+    <ul class="text-sm space-y-2 mb-3">
+      <li><strong>コンテキスト一致</strong>: 現在の状況と符号化時の文脈の類似度で検索（符号化特異性原理: 覚えた時の文脈に近い手がかりほど想起しやすい）</li>
+      <li><strong>マルチモーダル検索</strong>: ベクトル類似度 + キーワード + 時系列 + メタデータフィルタ。単一の検索方法では漏れが出る</li>
+      <li><strong>Recency × Importance × Relevance</strong>: Generative Agents の3要素スコアリング。新しさ・重要度・関連性の重み付き合計</li>
+      <li><strong>Proactive Recall（能動的想起）</strong>: ユーザーが聞く前に関連記憶を提示。「予測的支援」パターンの技術的基盤</li>
+    </ul>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+      <div class="bg-white p-3 rounded-lg border border-success/30"><strong class="text-success">Do</strong>: 複数の検索経路を組み合わせ、文脈に最適な記憶を上位に浮かせる</div>
+      <div class="bg-white p-3 rounded-lg border border-red-200"><strong class="text-red-600">Don't</strong>: キーワード完全一致のみで検索する（意味的に近い記憶を見逃す）</div>
+    </div>
+    <p class="text-xs text-accent mt-3">🤔 <strong>問い:</strong> 「ユーザーが聞く前に関連記憶を提示する」と「情報を出しすぎて邪魔になる」の境界線をどう設計するか？Proactive Recall の発動条件は？</p>
+  </div>
+
+</div>` },
+    reflect: { label: '内省', content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div><label class="block font-medium mb-2">Q1. あなたの6層設計を4次元フレームワークで評価してください。各次元で何が足りていて何が足りない？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m13-r1" placeholder="符号化: 手動でメタデータ付与 → 自動化が必要\n保持: L2-L5で分離済み → OK\n忘却: TTLルールあるが粗い\n想起: L1ランキングのみ → スコアリング導入が必要"></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 4原則のうち、あなたのプロダクトで最も設計が難しいのはどれ？なぜ？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m13-r2" placeholder="忘却の設計が最も難しい。医療データは法的に保存義務がある一方で..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 「Proactive Recall」を実現するには、どんな技術的基盤が必要ですか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m13-r3" placeholder="現在の文脈の自動分析、記憶との類似度計算、表示タイミングの最適化..."></textarea></div>
+</div>` },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    { question: '記憶の4設計次元に含まれないのはどれ？', options: ['符号化（何を覚えるか）', '保持（どう整理するか）', '翻訳（どう変換するか）', '想起（どう想起するか）'], correct: 2, explanation: '4次元は符号化・保持・忘却・想起。認知科学の3段階モデル（符号化・保持・検索）に「忘却」を設計次元として明示的に追加したもの。' },
+    { question: '「アクセスリフレッシュ」の認知科学的根拠はどれ？', options: ['処理水準説', '間隔反復（想起されるたびに忘却曲線がリセットされる）', 'ワーキングメモリモデル', '符号化特異性原理'], correct: 1, explanation: 'Ebbinghaus の忘却曲線で、復習（アクセス）するたびに記憶の安定性が増し忘却が緩やかになる。これをTTLリセットとして実装。' },
+    { question: '「Proactive Recall」の認知科学的対応はどれ？', options: ['短期記憶の容量制限', '手続き記憶の自動化', '文脈手がかりによる記憶の自動活性化', '忘却曲線の減衰'], correct: 2, explanation: '人間も特定の文脈（場所、人、話題）に遭遇すると、関連する記憶が自動的に活性化する。Proactive Recall はこれをエージェントに実装したもの。' }
+  ]
+},
+
+
+// ────────────────────────────────────────────────────────────
+// Module 15: Multi-Agent Shared Memory
+// ────────────────────────────────────────────────────────────
+{
+  id: 'multi-agent-memory',
+  num: '15',
+  phase: 4,
+  title: 'マルチエージェント共有記憶',
+  subtitle: '組織記憶・Transactive Memory・集合知',
+  icon: '🌐',
+  tabs: {
+    concept: { label: '概念', content: `
+<h2 class="text-2xl font-bold mb-6">複数のエージェントが「記憶」を共有する</h2>
+<div class="concept-box p-5 rounded-r-lg mb-8">
+  <p class="font-medium mb-2">Core Idea</p>
+  <p>複数エージェント環境での記憶共有と集合知形成。人間の組織記憶（Organizational Memory）の知見をAIに応用。</p>
+</div>
+
+<h3 class="text-lg font-bold mb-4">Walsh & Ungson (1991): Organizational Memory</h3>
+<p class="mb-4">組織は個人の記憶の総和以上の「組織記憶」を持つ。保持の場所:</p>
+<ul class="text-sm space-y-1 mb-6">
+  <li>個人の記憶、組織文化、手続き/ルール、構造（役割分担）、外部アーカイブ</li>
+</ul>
+
+<h3 class="text-lg font-bold mb-4">Wegner (1987): Transactive Memory System</h3>
+<p class="mb-4">「誰が何を知っているかについての知識」を共有するシステム。</p>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+  <div class="bg-subtle p-3 rounded-lg text-center"><div class="font-bold text-sm">Specialization</div><div class="text-xs text-muted">各人の専門領域</div></div>
+  <div class="bg-subtle p-3 rounded-lg text-center"><div class="font-bold text-sm">Credibility</div><div class="text-xs text-muted">信頼性の共有認識</div></div>
+  <div class="bg-subtle p-3 rounded-lg text-center"><div class="font-bold text-sm">Coordination</div><div class="text-xs text-muted">調整メカニズム</div></div>
+</div>
+
+<h3 class="text-lg font-bold mb-4">マルチエージェント記憶の設計パターン</h3>
+<div class="space-y-2 mb-6 text-sm">
+  <div class="border border-border p-3 rounded-lg"><strong>Shared Memory Pool</strong>: 全エージェントが同じメモリストアにアクセス</div>
+  <div class="border border-border p-3 rounded-lg"><strong>Federated Memory</strong>: 各エージェントが独自の記憶を持ち、必要に応じて共有</div>
+  <div class="border border-border p-3 rounded-lg"><strong>Hierarchical Memory</strong>: 上位エージェントが統合記憶を管理し、下位に配布</div>
+  <div class="border border-border p-3 rounded-lg"><strong>Blackboard Architecture</strong>: 共有の「黒板」に情報を書き込み、各エージェントが読む</div>
+</div>
+` },
+    reflect: { label: '内省', content: `
+<h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
+<div class="space-y-8">
+  <div><label class="block font-medium mb-2">Q1. Transactive Memory System をあなたのチーム・組織に当てはめると？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-r1" placeholder="各メンバーの専門領域が Specialization を持ち、役割が Coordination を担い..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 4つの設計パターンのうち、あなたのプロダクトやチームに最適なのはどれ？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-r2" placeholder="Federated Memory が最適。各専門領域の記憶は独立させつつ..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 全15モジュールを学んだ今、「記憶を持つ AI エージェント」の最も重要な設計原則を1つだけ選ぶとしたら？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-r3" placeholder="記憶の透明性。ユーザーがエージェントの記憶を理解し制御できることが全ての基盤..."></textarea></div>
+</div>` },
+    quiz: { label: '確認テスト', content: 'quiz' },
+  },
+  quiz: [
+    { question: 'Wegner の Transactive Memory System の核心はどれ？', options: ['全員が全てを記憶する', '「誰が何を知っているか」の知識を共有する', '記憶を中央データベースに集約する', '記憶を暗号化して共有する'], correct: 1, explanation: 'TMS の核心は「メタ知識の共有」。誰に聞けば何がわかるかを知っていること自体がシステムの知性を高める。' },
+    { question: '医療の多職種連携に最適な記憶共有パターンはどれ？', options: ['Shared Memory Pool（全共有）', 'Federated Memory（独立+選択的共有）', 'Hierarchical Memory（階層管理）', 'Blackboard Architecture（黒板共有）'], correct: 1, explanation: '各職種の専門記憶は独立させつつ、患者ケアに必要な情報のみを選択的に共有。プライバシーと専門性を両立する Federated が最適。' },
+    { question: '組織記憶が「個人の記憶の総和以上」になる理由はどれ？', options: ['データ量が多いから', '構造化・手続き化・文化への埋め込みにより個人を超えた知識が保持されるから', '全員が同じ記憶を持つから', 'バックアップがあるから'], correct: 1, explanation: 'Walsh & Ungson: 組織記憶は個人の記憶だけでなく、手続き・ルール・文化・構造にも埋め込まれ、個人が離れても組織として知識が保持される。' }
+  ]
+}
+];
+
+// ============================================================
+// STATE MANAGEMENT
+// ============================================================
+// パスワードハッシュの先頭16文字をユーザー ID として使用。
+// パスワードが異なれば別の ID になるので、学習データが他人と混ざらない。
+function getUserId() {
+  const hash = sessionStorage.getItem('ml-auth') || 'anonymous';
+  return hash.substring(0, 16);
+}
+const STATE_KEY = 'memory-learning-app-state-' + getUserId();
+const DEFAULT_STATE = { currentModule: -1, currentTab: 'concept', reflections: {}, quizResults: {}, completedModules: [], followUps: {} };
+
+// ============================================================
+// SUPABASE SYNC
+// ============================================================
+const SUPABASE_URL = 'https://zoprivqpzegqybokpegd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvcHJpdnFwemVncXlib2twZWdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MTk2NDAsImV4cCI6MjA4OTM5NTY0MH0.Wa6HbcHrqNYPCrSUmyGrFrPlAsIejz_p5CZGtPq1tKc';
+let supabaseClient = null;
+let syncStatus = 'offline'; // 'synced' | 'syncing' | 'offline'
+let saveDebounceTimer = null;
+
+function initSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+  try {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    setSyncStatus('syncing');
+    // Realtime subscription
+    supabaseClient.channel('learning-state-' + getUserId())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'learning_state', filter: 'id=eq.' + getUserId() }, (payload) => {
+        if (payload.new && payload.new.state) {
+          const remote = payload.new.state;
+          const merged = mergeStates(state, remote);
+          Object.assign(state, merged);
+          localStorage.setItem(STATE_KEY, JSON.stringify(state));
+          updateSidebar(); updateGlobalProgress();
+          if (state.currentModule >= 0) renderModule(state.currentModule);
+          else renderOverview();
+          setSyncStatus('synced');
+        }
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') setSyncStatus('synced');
+      });
+  } catch(e) { console.warn('Supabase init failed:', e); }
+}
+
+function mergeStates(local, remote) {
+  const merged = { ...local };
+  // completedModules: union
+  const allCompleted = new Set([...(local.completedModules || []), ...(remote.completedModules || [])]);
+  merged.completedModules = [...allCompleted];
+  // quizResults: prefer existing (first write wins)
+  merged.quizResults = { ...remote.quizResults, ...local.quizResults };
+  // quiz_answers: merge per module
+  Object.keys({ ...local, ...remote }).filter(k => k.startsWith('quiz_answers_')).forEach(k => {
+    merged[k] = { ...(remote[k] || {}), ...(local[k] || {}) };
+  });
+  // reflections: field-level merge — keep longer text
+  merged.reflections = { ...(remote.reflections || {}) };
+  Object.entries(local.reflections || {}).forEach(([k, v]) => {
+    if (!merged.reflections[k] || (v && v.length > (merged.reflections[k] || '').length)) {
+      merged.reflections[k] = v;
+    }
+  });
+  // followUps: merge per module
+  merged.followUps = { ...(remote.followUps || {}), ...(local.followUps || {}) };
+  return merged;
+}
+
+async function syncToSupabase() {
+  if (!supabaseClient) return;
+  setSyncStatus('syncing');
+  try {
+    const { error } = await supabaseClient.from('learning_state').upsert({
+      id: getUserId(),
+      state: state,
+      updated_at: new Date().toISOString()
+    });
+    setSyncStatus(error ? 'offline' : 'synced');
+  } catch(e) { setSyncStatus('offline'); }
+}
+
+async function loadFromSupabase() {
+  if (!supabaseClient) return null;
+  try {
+    const { data, error } = await supabaseClient.from('learning_state').select('state').eq('id', getUserId()).single();
+    if (error || !data) return null;
+    return data.state;
+  } catch(e) { return null; }
+}
+
+async function forceSyncNow() {
+  closeToolsMenu();
+  if (!supabaseClient) { alert('Supabase が設定されていません。\nHTML 内の SUPABASE_URL と SUPABASE_ANON_KEY を設定してください。'); return; }
+  setSyncStatus('syncing');
+  const remote = await loadFromSupabase();
+  if (remote) {
+    const merged = mergeStates(state, remote);
+    Object.assign(state, merged);
+    localStorage.setItem(STATE_KEY, JSON.stringify(state));
+    updateSidebar(); updateGlobalProgress();
+    if (state.currentModule >= 0) renderModule(state.currentModule); else renderOverview();
+  }
+  await syncToSupabase();
+}
+
+function setSyncStatus(status) {
+  syncStatus = status;
+  const dot = document.querySelector('#syncIndicator .sync-dot');
+  const label = document.getElementById('syncLabel');
+  if (!dot) return;
+  dot.className = 'sync-dot ' + status;
+  const labels = { synced: '同期済', syncing: '同期中…', offline: 'オフライン' };
+  if (label) label.textContent = labels[status] || '';
+}
+
+// ============================================================
+// TOOLS MENU
+// ============================================================
+function toggleToolsMenu() {
+  document.getElementById('toolsDropdown').classList.toggle('open');
+}
+function closeToolsMenu() {
+  document.getElementById('toolsDropdown').classList.remove('open');
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.tools-menu')) closeToolsMenu();
+});
+
+// ============================================================
+// API SETTINGS
+// ============================================================
+function showApiSettings() {
+  closeToolsMenu();
+  const current = sessionStorage.getItem('claude-api-key') || '';
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  overlay.innerHTML = `
+    <div class="modal-box">
+      <h3 class="text-lg font-bold mb-2">API 設定</h3>
+      <p class="text-sm text-muted mb-4">Claude API キーを設定すると「もっと深く分析」機能が使えます。キーはセッション中のみ保持され、ブラウザを閉じると消えます。</p>
+      <input id="apiKeyInput" type="password" value="${current}" placeholder="sk-ant-..." class="w-full px-3 py-2 border border-border rounded-lg text-sm mb-4" />
+      <div class="flex gap-2 justify-end">
+        <button onclick="this.closest('.modal-overlay').remove()" class="px-4 py-2 text-sm text-muted hover:text-ink">キャンセル</button>
+        <button onclick="saveApiKey()" class="px-4 py-2 text-sm bg-accent text-white rounded-lg hover:bg-accentDark">保存</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (key) sessionStorage.setItem('claude-api-key', key);
+  else sessionStorage.removeItem('claude-api-key');
+  document.querySelector('.modal-overlay').remove();
+}
+
+// ============================================================
+// STATE LOAD / SAVE
+// ============================================================
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STATE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return { ...DEFAULT_STATE, ...parsed };
+    }
+  } catch(e) {}
+  return { ...DEFAULT_STATE };
+}
+
+function saveState() {
+  localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  // Debounced Supabase sync
+  if (supabaseClient) {
+    clearTimeout(saveDebounceTimer);
+    saveDebounceTimer = setTimeout(() => syncToSupabase(), 500);
+  }
+}
+
+let state = loadState();
+
+// Init Supabase after state is loaded (errors must not block rendering)
+(async function() {
+  try {
+    initSupabase();
+    if (supabaseClient) {
+      const remote = await loadFromSupabase();
+      if (remote) {
+        const merged = mergeStates(state, remote);
+        Object.assign(state, merged);
+        localStorage.setItem(STATE_KEY, JSON.stringify(state));
+        updateSidebar(); updateGlobalProgress();
+        if (state.currentModule >= 0) renderModule(state.currentModule); else renderOverview();
+      }
+    }
+  } catch(e) { console.warn('Supabase sync skipped:', e); }
+})();
+
+// ============================================================
+// FOLLOW-UP QUESTION BANK (Layer 1: Rule-based)
+// ============================================================
+const FOLLOWUP_BANK = {
+  // Module 0: 記憶の3段階モデル
+  0: [
+    { concept: 'multi-store-model', question: '感覚記憶から短期記憶に移行するために必要な認知プロセスは何？', hint: '日常で「聞こえたけど聞いてなかった」現象を思い出してみよう' },
+    { concept: 'multi-store-model', question: '短期記憶の容量制限（7±2）を克服するための「チャンキング」を、AIエージェント設計にどう活用できる？', hint: '複数の情報を意味のある単位にまとめる例を考えてみよう' },
+    { concept: 'levels-of-processing', question: '意味的処理と構造的処理の記憶定着の差は実験でどう検証された？', hint: '単語リストを使った実験を想像してみよう' },
+    { concept: 'levels-of-processing', question: 'エージェントの記憶の「符号化品質」を高めるために、ログをそのまま保存するのではなく何をすべき？', hint: 'メタデータ、要約、関連付け…' },
+    { concept: 'encoding-agents', question: 'エージェント記憶の「符号化→保持→検索」で、最もボトルネックになりやすい段階はどれ？なぜ？', hint: '人間の記憶と同じく、最初の段階が全体の質を決める' },
+    { concept: 'encoding-agents', question: '人間の記憶で「リハーサル」に相当するエージェントの仕組みを2つ挙げてみよう', hint: '繰り返しアクセス、定期的な再評価…' },
+  ],
+  // Module 1: 記憶の種類
+  1: [
+    { concept: 'working-memory', question: 'Baddeley モデルの「エピソードバッファ」が LLM のどの機構に対応するか説明してみよう', hint: '異なる形式の情報を統合する場所…' },
+    { concept: 'working-memory', question: 'ワーキングメモリの容量制限が AI エージェントのコンテキストウィンドウとどう対応するか、具体例を挙げて', hint: '同時に処理できる情報量の上限' },
+    { concept: 'episodic-memory', question: '意味記憶とエピソード記憶の変換プロセスを、エージェントの Reflection 機能と結びつけて説明して', hint: '具体的体験 → 抽象的知識の流れ' },
+    { concept: 'episodic-memory', question: 'エージェントが「手続き記憶」を獲得するプロセスとして、ファインチューニング以外にどんな方法がある？', hint: 'ツール使用パターンの学習、プロンプトテンプレート…' },
+    { concept: 'procedural-memory', question: '人間の手続き記憶（自転車の乗り方など）が「言語化しにくい」のと同様に、AIで言語化しにくい知識とは？', hint: 'モデルの重みに埋め込まれた知識' },
+    { concept: 'procedural-memory', question: 'プロンプトテンプレートは「手続き記憶」と「意味記憶」のどちらに近い？根拠を挙げて', hint: '定型的な手順 vs 事実の知識' },
+  ],
+  // Module 2: 忘却と想起
+  2: [
+    { concept: 'forgetting-curve', question: '忘却曲線の減衰を遅らせる「間隔反復」の最適タイミングはどう決まる？', hint: '忘れかけた頃に復習するのが最も効果的' },
+    { concept: 'forgetting-curve', question: 'エージェント記憶で TTL（Time To Live）を設計する際、一律の期限より適応的な忘却が優れている理由は？', hint: 'アクセス頻度、重要度、文脈依存性…' },
+    { concept: 'encoding-specificity', question: '「勉強した場所で試験を受けると成績が良い」現象を、エージェント記憶検索にどう活かせる？', hint: '検索クエリに文脈情報を含める' },
+    { concept: 'encoding-specificity', question: 'エージェントのメモリ検索で「想起手がかり」を充実させる具体的な設計方法を3つ考えて', hint: 'メタデータ、文脈タグ、関連リンク…' },
+    { concept: 'testing-effect', question: 'テスト効果を活用した「セルフテスト」機能をエージェントに実装するとしたら、どんな仕組み？', hint: '記憶の定着を確認するフローバック' },
+    { concept: 'testing-effect', question: '単なる再読よりテスト（想起練習）が記憶定着に1.5倍効果的な認知科学的理由は？', hint: '検索プロセス自体が記憶痕跡を強化する' },
+  ],
+  // Module 3: 神経科学の基礎
+  3: [
+    { concept: 'hippocampus', question: '海馬が「記憶のインデックス」として機能するモデルを、MEMORY.md の L1 参照リストと比較して', hint: '分散保存された情報を結びつけるポインター' },
+    { concept: 'hippocampus', question: '海馬損傷患者 H.M. が新しいエピソード記憶を形成できなかったのに手続き記憶は獲得できた理由は？', hint: '手続き記憶は海馬を経由しない' },
+    { concept: 'synaptic-plasticity', question: 'LTP（長期増強）の「使うほど強くなる」性質を、エージェント記憶のスコアリングにどう実装できる？', hint: 'アクセス頻度による重み付け' },
+    { concept: 'synaptic-plasticity', question: '睡眠中の記憶固定化に相当する、エージェントの「オフライン整理」プロセスを設計してみよう', hint: 'バッチ処理で記憶の整理・圧縮・再構成' },
+    { concept: 'systems-consolidation', question: '記憶の固定化が「海馬→大脳皮質」へ移動するプロセスは、エージェントのどんなアーキテクチャに対応する？', hint: 'ホットストレージ→コールドストレージ' },
+    { concept: 'systems-consolidation', question: '情動が記憶を強化する神経科学的メカニズムを、エージェント設計で「重要な出来事を優先記憶」する仕組みに応用するには？', hint: '扁桃体の役割、優先度スコアリング' },
+  ],
+  // Module 4: LLM の仕組み
+  4: [
+    { concept: 'next-token-prediction', question: '次トークン予測が「理解」ではなくパターンマッチングである限界を、具体例で説明して', hint: '事実と異なる流暢な文章を生成するケース' },
+    { concept: 'next-token-prediction', question: 'LLM の学習データと人間の長期記憶の類似点と相違点を3つずつ挙げて', hint: '更新可能性、構造、検索方法…' },
+    { concept: 'attention-mechanism', question: 'Attention の「Query-Key-Value」構造を、図書館での調べ物に例えて説明して', hint: '質問→目次の照合→本文の取得' },
+    { concept: 'attention-mechanism', question: 'コンテキストウィンドウが拡大しても「中間部分を見落とす」Lost-in-the-Middle 問題はなぜ起きる？', hint: 'Attention の分布、最初と最後に偏る' },
+    { concept: 'context-window', question: 'コンテキストウィンドウの「有効活用」と、人間のワーキングメモリのチャンキング戦略の共通点は？', hint: '限られた容量を最大限活用する工夫' },
+    { concept: 'context-window', question: 'もし LLM のコンテキストが無限になったら、記憶設計は不要になる？なぜ or なぜ不要にならない？', hint: '検索の精度、ノイズ、コスト…' },
+  ],
+  // Module 5: RAG と外部記憶
+  5: [
+    { concept: 'embedding', question: '「意味が近い」テキストのエンベディングが近くなる仕組みを、座標空間のメタファーで説明して', hint: '多次元空間でのベクトル距離' },
+    { concept: 'embedding', question: 'エンベディングの限界（文脈によって意味が変わる同じ単語）を具体例で説明して', hint: '「銀行」= 金融機関？川岸？' },
+    { concept: 'rag-vs-llm', question: 'RAG の retrieval 段階で「関連性が高いが質問の答えにならない」文書が混入する問題の対策は？', hint: 'リランキング、フィルタリング、クエリ変換…' },
+    { concept: 'rag-vs-llm', question: 'RAG と Fine-tuning を組み合わせるハイブリッドアプローチの利点と欠点を整理して', hint: '知識の更新容易性 vs 推論品質' },
+    { concept: 'chunking', question: 'ドキュメントのチャンキング戦略で「意味的境界」を検出する手法を2つ挙げて', hint: '段落、見出し、トピック変化点…' },
+    { concept: 'chunking', question: 'チャンクサイズが大きすぎる場合と小さすぎる場合、それぞれどんな問題が起きる？', hint: '精度 vs 文脈保持のトレードオフ' },
+  ],
+  // Module 6: エージェント記憶設計
+  6: [
+    { concept: 'generative-agents', question: 'Generative Agents の Recency × Importance × Relevance スコアリングで、各要素の重みをどう決めるべき？', hint: 'ユースケースにより最適な重みが異なる' },
+    { concept: 'generative-agents', question: 'Reflection（内省）で「抽象度が適切」な洞察を生成するために、どんなプロンプト設計が有効？', hint: '具体→抽象の粒度指定' },
+    { concept: 'memgpt', question: 'MemGPT の「仮想ページング」は OS のメモリ管理のどの概念と対応する？違いは？', hint: 'ページイン/ページアウト、LRU' },
+    { concept: 'memgpt', question: 'Core Memory / Recall Memory / Archival Memory の使い分け基準を、あなたの業務に当てはめて具体化して', hint: '常時参照/検索可能/長期保存' },
+    { concept: 'letta', question: 'Letta の3層メモリと人間の記憶タイプ（ワーキング/エピソード/意味）の対応関係を整理して', hint: 'Core↔WM, Recall↔Episodic, Archival↔Semantic' },
+    { concept: 'letta', question: '記憶のセルフ編集機能のリスク（間違った記憶を書き込む）を防ぐ安全策を3つ提案して', hint: 'バリデーション、ロールバック、人間のレビュー' },
+  ],
+  // Module 7: 最新論文サーベイ
+  7: [
+    { concept: 'survey-trends', question: '2024-2025 年の記憶研究で「マルチモーダル記憶」が重要視される理由は？', hint: '画像・音声・テキストの統合記憶' },
+    { concept: 'survey-trends', question: '記憶の「階層構造」（要約→詳細）が検索精度を高める理由を情報理論の観点で説明して', hint: 'まず大まかなマッチ→絞り込み' },
+    { concept: 'survey-architecture', question: '論文で提案される記憶アーキテクチャの多くが「人間の記憶モデル」を参照する理由は？', hint: 'バイオインスパイアド設計の利点' },
+    { concept: 'survey-architecture', question: '記憶の「圧縮」と「忠実性」のトレードオフをどう管理するのが最善か？', hint: '要約レベルの段階管理、原文保持' },
+    { concept: 'survey-evaluation', question: '記憶ありエージェントの評価指標として「記憶正確性」以外に重要な指標を3つ挙げて', hint: '適時性、関連性、プライバシー…' },
+    { concept: 'survey-evaluation', question: '記憶のベンチマークが難しい理由を、他の NLP タスクと比較して説明して', hint: '正解が一意でない、文脈依存性が高い' },
+  ],
+  // Module 8: Agentic UX の構造
+  8: [
+    { concept: 'agentic-ux', question: 'GUI → Conversational → Agentic の進化で「ユーザーの認知負荷」はどう変化する？', hint: '操作負荷↓ + 信頼判断負荷↑' },
+    { concept: 'agentic-ux', question: 'Agentic UX で記憶が「パーソナライゼーション」を超えて「信頼構築」に寄与するメカニズムは？', hint: '「自分を理解している」感覚' },
+    { concept: 'graceful-handoff', question: '医療 AI での Graceful Handoff の具体的な実装例を3つ考えて', hint: '確信度表示、専門医紹介、人間レビュー促進' },
+    { concept: 'graceful-handoff', question: 'Handoff のタイミングが「早すぎる」場合と「遅すぎる」場合のそれぞれのリスクは？', hint: '価値毀損 vs 信頼毀損' },
+    { concept: 'memory-in-agentic', question: '記憶を持つエージェントが「不気味の谷」に陥るのはどんな場合？その対策は？', hint: '期待との不一致、透明性の欠如' },
+    { concept: 'memory-in-agentic', question: '短期的なタスク完了と長期的な関係構築で、記憶設計の優先度はどう変わる？', hint: '即時利便性 vs 信頼蓄積' },
+  ],
+  // Module 9: 信頼の校正
+  9: [
+    { concept: 'trust-model', question: 'Performance / Process / Purpose の3要素のうち、AI でユーザーが最初に評価するのはどれ？なぜ？', hint: '直接観察できるもの' },
+    { concept: 'trust-model', question: '記憶を持つ AI に固有の信頼課題を、記憶を持たない AI と比較して3つ挙げて', hint: '正確性、鮮度、プライバシー' },
+    { concept: 'calibration', question: '「過信（over-trust）」と「過小信頼（under-trust）」のそれぞれの実害を医療 AI で例示して', hint: '見逃し vs 不活用' },
+    { concept: 'calibration', question: 'Trust Calibration のために記憶の「確信度」を表示する UI を設計してみよう', hint: '最終更新日、情報源、推定信頼度' },
+    { concept: 'memory-trust', question: '古い記憶に基づく推薦が信頼を毀損する具体例を、あなたの業務で考えて', hint: '変更された仕様、異動した担当者…' },
+    { concept: 'memory-trust', question: '「この情報は X月時点のものです」表示が信頼に与える影響を正負両面で分析して', hint: '透明性↑ vs 不安↑' },
+  ],
+  // Module 10: 認知負荷と AI
+  10: [
+    { concept: 'cognitive-load', question: '外在的負荷を削減する UI 改善を、あなたが使う AI ツールで3つ提案して', hint: '情報の構造化、フィルタリング、段階的開示' },
+    { concept: 'cognitive-load', question: 'AI が「本質的負荷」まで削減してしまうリスクを具体例で説明して', hint: '学習機会の喪失、スキル退化' },
+    { concept: 'proactive-memory', question: 'プロアクティブな記憶呼び出しが認知負荷を「増やす」ケースを考えて', hint: '不要な情報の提示、注意の分散' },
+    { concept: 'proactive-memory', question: 'ユーザーの認知状態（忙しい/集中/探索中）に応じて記憶の提示方法を変える設計をしてみよう', hint: 'アンビエント vs 明示的' },
+    { concept: 'memory-offloading', question: '記憶の外部化（AI に任せる）によるユーザーの記憶力低下リスクとその対策は？', hint: 'Google Effect、能動的関与の促進' },
+    { concept: 'memory-offloading', question: 'CLT の3種の負荷を記憶 AI の設計原則に翻訳してみよう', hint: '削減すべき負荷 / 守るべき負荷 / 促進すべき負荷' },
+  ],
+  // Module 11: 共有文脈
+  11: [
+    { concept: 'common-ground', question: 'Common Ground が構築されていない AI との対話で「意図が伝わらない」経験を分析して', hint: '暗黙の前提、共有知識の不足' },
+    { concept: 'common-ground', question: 'Grounding の「相互確認」プロセスを、チャットbot に実装するとどんな対話フローになる？', hint: '確認質問、要約フィードバック' },
+    { concept: 'progressive-disclosure', question: 'Progressive Disclosure of Memory の4段階を、あなたのプロダクトに適用してみよう', hint: 'Ambient → Explicit → Dashboard → Negotiation' },
+    { concept: 'progressive-disclosure', question: 'Memory Negotiation（記憶の交渉）が最も必要な場面は？その理由は？', hint: '記憶の修正、プライバシーに関わる記憶' },
+    { concept: 'shared-context-design', question: 'AI が「空気を読む」ことの利点とリスクを、Common Ground Theory の観点で分析して', hint: '暗黙の Grounding の限界' },
+    { concept: 'shared-context-design', question: '多言語・多文化環境での Common Ground 構築の課題と、記憶設計での対策は？', hint: '文化的文脈の違い、メタデータの言語依存性' },
+  ],
+  // Module 12: 記憶の UX パターン
+  12: [
+    { concept: 'memory-ux-patterns', question: 'Anticipation（予測的支援）が「おせっかい」にならない境界線をどう設計する？', hint: '確信度閾値、ユーザーの受容性' },
+    { concept: 'memory-ux-patterns', question: 'Uncanny Memory アンチパターンの実例を身の回りのサービスから探して分析して', hint: 'リターゲティング広告、パーソナライズ推薦' },
+    { concept: 'stale-memory', question: '古い記憶に基づく行動が特に危険な業務領域を3つ挙げて、それぞれの対策を考えて', hint: '医療、金融、法律…' },
+    { concept: 'stale-memory', question: '記憶の「鮮度管理」を自動化する仕組みとして TTL 以外にどんなアプローチがある？', hint: '変更検知、定期確認、ユーザー報告' },
+    { concept: 'over-personalization', question: '過度なパーソナライゼーションが「フィルターバブル」を作るリスクをエージェント記憶でどう防ぐ？', hint: '多様性の確保、ランダム性の導入' },
+    { concept: 'over-personalization', question: '記憶を「忘れる」ことが UX を向上させるケースを3つ考えて', hint: '変化した嗜好、一時的な行動、プライバシー' },
+  ],
+  // Module 13: 記憶の設計原則
+  13: [
+    { concept: 'design-dimensions', question: '符号化・保持・忘却・想起の4次元で、あなたのプロダクトの記憶設計を評価してみよう', hint: '各次元のスコアと改善点' },
+    { concept: 'design-dimensions', question: '「忘却」を設計次元に含める（3段階→4次元）ことの実践的な意義を説明して', hint: '忘却はバグではなくフィーチャー' },
+    { concept: 'access-refresh', question: 'アクセスリフレッシュ（TTLリセット）のリスクを考えて。どんな記憶には適用すべきでない？', hint: '事実が変化する情報、誤って記憶したもの' },
+    { concept: 'access-refresh', question: 'Ebbinghaus の忘却曲線を活用した「最適復習タイミング通知」をエージェントに実装するには？', hint: 'SuperMemo アルゴリズム、SM-2' },
+    { concept: 'proactive-recall', question: 'Proactive Recall の「文脈検出」精度を高めるために、どんなシグナルを使えばよい？', hint: '時間、場所、話題、参加者、カレンダー…' },
+    { concept: 'proactive-recall', question: '受動的検索（ユーザーが探す）vs 能動的想起（エージェントが思い出す）の適切な使い分け基準は？', hint: '緊急度、関連度、認知負荷' },
+  ],
+  // Module 14: 医療への応用
+  14: [
+    { concept: 'medical-memory', question: '医療 AI の記憶が「古い検査値」に基づいて推薦する危険を具体的な症例で説明して', hint: '経時変化する数値、治療方針の変更' },
+    { concept: 'medical-memory', question: '多職種連携でのアクセス権限スコーピングを、具体的な職種（医師/看護師/薬剤師）で設計して', hint: '職種ごとに必要な情報が異なる' },
+    { concept: 'patient-memory', question: '患者の記憶（体験、不安、価値観）を AI が記憶することのメリットとリスクを整理して', hint: '個別化医療 vs プライバシー' },
+    { concept: 'patient-memory', question: '患者が「自分の暮らし」を軸に意思決定するための記憶支援をどう設計する？', hint: '生活文脈、価値観、治療との折り合い' },
+    { concept: 'federated-memory', question: 'Federated Memory パターンで、組織間（病院間）の記憶共有をどう実現する？', hint: '標準フォーマット、同意管理、アクセスログ' },
+    { concept: 'federated-memory', question: '電子カルテの記憶と AI エージェントの記憶の連携における技術的・倫理的課題は？', hint: 'データ形式、更新タイミング、責任所在' },
+  ],
+  // Module 15: TMS
+  15: [
+    { concept: 'transactive-memory', question: '「誰が何を知っているか」のメタ知識を AI エージェントに実装する具体的なデータモデルを設計して', hint: 'エキスパティーズマップ、スキルタグ' },
+    { concept: 'transactive-memory', question: 'Wegner の TMS が高性能チームの条件とされる理由を、情報検索コストの観点で説明して', hint: '検索の効率化、冗長性の排除' },
+    { concept: 'multi-agent-memory', question: 'マルチエージェントシステムで Shared Memory Pool と Federated Memory のどちらを選ぶ判断基準は？', hint: 'プライバシー要件、一貫性要件、スケーラビリティ' },
+    { concept: 'multi-agent-memory', question: '組織の TMS が崩壊する（キーパーソンの離職）リスクを AI で軽減する方法を考えて', hint: '知識の文書化、代替ルートの確保' },
+    { concept: 'blackboard-architecture', question: 'Blackboard Architecture の利点と限界を、最新のマルチエージェントフレームワークと比較して', hint: '中央集権 vs 分散、スケーラビリティ' },
+    { concept: 'blackboard-architecture', question: 'あなたのチームの TMS を AI で強化するとしたら、まず何から始める？', hint: '現状の知識フローの可視化' },
+  ],
+};
+
+// Map quiz questions to concepts for follow-up matching
+const QUIZ_CONCEPT_MAP = {
+  0: ['multi-store-model', 'levels-of-processing', 'encoding-agents'],
+  1: ['working-memory', 'episodic-memory', 'procedural-memory'],
+  2: ['forgetting-curve', 'encoding-specificity', 'testing-effect'],
+  3: ['hippocampus', 'synaptic-plasticity', 'systems-consolidation'],
+  4: ['next-token-prediction', 'attention-mechanism', 'context-window'],
+  5: ['embedding', 'rag-vs-llm', 'chunking'],
+  6: ['generative-agents', 'generative-agents', 'memgpt'],
+  7: ['survey-trends', 'survey-architecture', 'survey-evaluation'],
+  8: ['agentic-ux', 'graceful-handoff', 'memory-in-agentic'],
+  9: ['trust-model', 'memory-trust', 'calibration'],
+  10: ['cognitive-load', 'proactive-memory', 'memory-offloading'],
+  11: ['common-ground', 'progressive-disclosure', 'shared-context-design'],
+  12: ['memory-ux-patterns', 'stale-memory', 'over-personalization'],
+  13: ['design-dimensions', 'access-refresh', 'proactive-recall'],
+  14: ['medical-memory', 'federated-memory', 'patient-memory'],
+  15: ['transactive-memory', 'multi-agent-memory', 'blackboard-architecture'],
+};
+
+function analyzeWeakness(moduleIdx) {
+  const answers = state[`quiz_answers_${moduleIdx}`] || {};
+  const questions = MODULES[moduleIdx].quiz;
+  const concepts = QUIZ_CONCEPT_MAP[moduleIdx] || [];
+  const weakConcepts = [];
+
+  questions.forEach((q, i) => {
+    if (answers[i] !== undefined && answers[i] !== q.correct) {
+      if (concepts[i]) weakConcepts.push(concepts[i]);
+    }
+  });
+
+  return weakConcepts;
+}
+
+function analyzeReflectionDepth(moduleIdx) {
+  const reflKeys = Object.keys(state.reflections || {}).filter(k => k.startsWith(`m${moduleIdx}-`));
+  let totalLen = 0;
+  let hasKeywords = false;
+  const deepKeywords = ['なぜなら', 'つまり', '具体的に', '例えば', 'に対して', 'の違い', 'という理由', 'と考える', 'に活用', '設計', '実装', '応用'];
+
+  reflKeys.forEach(k => {
+    const text = state.reflections[k] || '';
+    totalLen += text.length;
+    if (deepKeywords.some(kw => text.includes(kw))) hasKeywords = true;
+  });
+
+  if (totalLen > 200 && hasKeywords) return 'deep';
+  if (totalLen > 50) return 'moderate';
+  return 'shallow';
+}
+
+function getFollowUpQuestions(moduleIdx) {
+  const bank = FOLLOWUP_BANK[moduleIdx] || [];
+  const weakConcepts = analyzeWeakness(moduleIdx);
+  const depth = analyzeReflectionDepth(moduleIdx);
+
+  let selected = [];
+  // Prioritize questions for weak concepts
+  weakConcepts.forEach(concept => {
+    const matching = bank.filter(q => q.concept === concept && !selected.includes(q));
+    if (matching.length > 0) selected.push(matching[0]);
+  });
+
+  // If reflection is shallow, add general questions
+  if (depth === 'shallow' && selected.length < 3) {
+    const remaining = bank.filter(q => !selected.includes(q));
+    while (selected.length < 3 && remaining.length > 0) {
+      selected.push(remaining.shift());
+    }
+  }
+
+  // Ensure at least 2 questions if quiz was taken
+  if (selected.length < 2 && state.quizResults[moduleIdx] !== undefined) {
+    const remaining = bank.filter(q => !selected.includes(q));
+    while (selected.length < 2 && remaining.length > 0) {
+      selected.push(remaining.shift());
+    }
+  }
+
+  return selected.map(q => ({ ...q, source: 'local' }));
+}
+
+function getComprehensionLevel(moduleIdx) {
+  const quizDone = state.quizResults[moduleIdx] !== undefined;
+  const quizPassed = quizDone && state.quizResults[moduleIdx] >= Math.ceil(MODULES[moduleIdx].quiz.length * 0.67);
+  const depth = analyzeReflectionDepth(moduleIdx);
+  const hasFollowUpAnswers = (state.followUps[moduleIdx] || []).some(f => f.answer && f.answer.length > 10);
+
+  if (quizPassed && depth === 'deep' && hasFollowUpAnswers) return 'green';
+  if (quizPassed && depth !== 'shallow') return 'yellow';
+  if (!quizDone) return 'red';
+  return 'yellow';
+}
+
+// ============================================================
+// LAYER 2: Claude API Analysis
+// ============================================================
+async function requestClaudeAnalysis(moduleIdx) {
+  const apiKey = sessionStorage.getItem('claude-api-key');
+  if (!apiKey) {
+    showApiSettings();
+    return;
+  }
+
+  // Privacy notice on first use
+  if (!sessionStorage.getItem('claude-api-consent')) {
+    const ok = confirm('内省テキストとクイズ結果を Claude API に送信します。\nAnthopic はAPIデータを学習に使用しません。\n\n続行しますか？');
+    if (!ok) return;
+    sessionStorage.setItem('claude-api-consent', '1');
+  }
+
+  const m = MODULES[moduleIdx];
+  const reflKeys = Object.keys(state.reflections || {}).filter(k => k.startsWith(`m${moduleIdx}-`));
+  const reflTexts = reflKeys.map(k => state.reflections[k]).filter(Boolean).join('\n');
+  const weakConcepts = analyzeWeakness(moduleIdx);
+  const quizScore = state.quizResults[moduleIdx];
+
+  const btn = document.getElementById('claudeAnalysisBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '分析中…'; }
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content: `あなたは認知科学とAIの学習コーチです。以下の学習者の状況を分析し、理解を深めるためのフォローアップ質問を3つ生成してください。
+
+モジュール: ${m.title}（${m.subtitle}）
+クイズスコア: ${quizScore !== undefined ? quizScore + '/' + m.quiz.length : '未受験'}
+弱点概念: ${weakConcepts.length > 0 ? weakConcepts.join(', ') : 'なし'}
+内省テキスト:
+${reflTexts || '（未記入）'}
+
+以下のJSON形式で回答してください（他のテキストは不要）:
+[
+  {"question": "質問文", "hint": "考えるヒント", "concept": "関連概念"},
+  {"question": "質問文", "hint": "考えるヒント", "concept": "関連概念"},
+  {"question": "質問文", "hint": "考えるヒント", "concept": "関連概念"}
+]
+
+質問は:
+- 学習者の弱点を補強する
+- 内省が浅い場合はより深い思考を促す
+- 実務への応用を意識させる
+- 日本語で出力`
+        }]
+      })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const text = data.content[0].text;
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error('Failed to parse response');
+
+    const questions = JSON.parse(jsonMatch[0]);
+    const followUps = questions.map(q => ({ ...q, source: 'claude', answer: '' }));
+
+    if (!state.followUps[moduleIdx]) state.followUps[moduleIdx] = [];
+    // Remove old Claude follow-ups, keep local ones
+    state.followUps[moduleIdx] = state.followUps[moduleIdx].filter(f => f.source !== 'claude');
+    state.followUps[moduleIdx].push(...followUps);
+    saveState();
+    renderModule(moduleIdx);
+  } catch(e) {
+    alert('分析に失敗しました: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = '🤖 もっと深く分析（Claude API）'; }
+  }
+}
+
+// ============================================================
+// RENDERING
+// ============================================================
+
+function updateSidebar() {
+  document.querySelectorAll('.sidebar-link[data-module]').forEach(el => {
+    const idx = parseInt(el.dataset.module);
+    const isActive = idx === state.currentModule;
+    const isComplete = state.completedModules.includes(idx);
+    el.classList.toggle('active', isActive);
+    if (isComplete) {
+      el.querySelector('.opacity-50').textContent = '✓';
+      el.querySelector('.opacity-50').classList.remove('opacity-50');
+    }
+  });
+}
+
+function updateGlobalProgress() {
+  const count = state.completedModules.length;
+  document.getElementById('globalProgress').textContent = count;
+  document.getElementById('globalProgressBar').style.width = `${(count / MODULES.length) * 100}%`;
+}
+
+function showOverview() {
+  state.currentModule = -1;
+  state.currentTab = 'concept';
+  saveState();
+  updateSidebar();
+  renderOverview();
+}
+
+function renderOverview() {
+  const el = document.getElementById('content');
+  el.innerHTML = `
+    <div class="fade-in">
+      <h1 class="text-3xl font-black mb-2">記憶の科学とエージェント設計</h1>
+      <p class="text-muted mb-6">Memory Science for Agent Design — 認知科学 × AI 技術 × Agentic UX を横断して学ぶ</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <div class="border border-border rounded-xl overflow-hidden bg-white">
+          <video src="intro-video.mp4" controls preload="metadata" class="w-full" style="max-height:240px;object-fit:cover"></video>
+          <div class="p-4">
+            <div class="font-bold text-sm mb-1">🎬 AI の脳を作る：機械はどのように記憶を学ぶのか</div>
+            <p class="text-xs text-muted">全体像を掴むための導入動画。まずはこちらから視聴してください。</p>
+          </div>
+        </div>
+        <a href="agentic-memory-design.pdf" target="_blank" class="border border-border rounded-xl p-5 bg-white hover:bg-subtle transition-colors flex flex-col justify-center" style="text-decoration:none;color:inherit">
+          <div class="text-3xl mb-3">📄</div>
+          <div class="font-bold text-sm mb-1">Agentic Memory Design</div>
+          <p class="text-xs text-muted mb-2">エージェント記憶設計の全体像をまとめた PDF 資料。タップで開きます。</p>
+          <span class="text-xs text-accent font-medium">PDF を開く →</span>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 mb-8">
+        <div class="bg-subtle p-5 rounded-xl">
+          <h3 class="font-bold mb-2">学習設計について</h3>
+          <p class="text-sm text-muted mb-3">このアプリは記憶の科学自体を活用して設計されています:</p>
+          <ul class="text-sm space-y-1">
+            <li><strong>テスト効果（Testing Effect）</strong>: 各モジュールに確認テストがあり、想起練習で定着を促進</li>
+            <li><strong>精緻化質問（Elaborative Interrogation）</strong>: 「自分の言葉で説明」で深い処理を促進</li>
+            <li><strong>処理水準（Levels of Processing）</strong>: 概念 → 内省 → 確認テストの順で処理を深化</li>
+          </ul>
+        </div>
+      </div>
+
+      ${[
+        { phase: 1, title: '第1部: 認知科学 — 記憶の原理' },
+        { phase: 2, title: '第2部: AI の記憶技術' },
+        { phase: 3, title: '第3部: エージェント体験設計（Agentic UX）' },
+        { phase: 4, title: '第4部: 記憶の設計実践' }
+      ].map(p => {
+        const mods = MODULES.map((m, i) => ({ ...m, _idx: i })).filter(m => m.phase === p.phase);
+        return '<div class="mb-6"><h2 class="text-lg font-bold mb-4">' + p.title + '</h2><div class="grid grid-cols-1 md:grid-cols-4 gap-4">' + mods.map(m => moduleCard(m, m._idx)).join('') + '</div></div>';
+      }).join('')}
+    </div>
+  `;
+}
+
+function compTitle(level) {
+  return level === 'green' ? '理解度: 高' : level === 'yellow' ? '理解度: 中' : '理解度: 低';
+}
+
+function moduleCard(m, idx) {
+  const isComplete = state.completedModules.includes(idx);
+  const quizDone = state.quizResults[idx] !== undefined;
+  const compLevel = getComprehensionLevel(idx);
+  return `
+    <div class="module-card border border-border rounded-xl p-5 cursor-pointer bg-white ${isComplete ? 'border-success/50' : ''}" onclick="navigateTo(${idx})">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="text-2xl">${m.icon}</span>
+        <div>
+          <div class="text-xs text-muted font-mono">Module ${m.num}</div>
+          <div class="font-bold text-sm">${m.title}</div>
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+          <span class="comp-dot ${compLevel}" title="${compTitle(compLevel)}"></span>
+          ${isComplete ? '<span class="text-success text-lg">✓</span>' : ''}
+        </div>
+      </div>
+      <div class="text-xs text-muted">${m.subtitle}</div>
+      ${quizDone ? `<div class="mt-3 text-xs"><span class="bg-success/10 text-success px-2 py-0.5 rounded">Quiz: ${state.quizResults[idx]}/${m.quiz.length}</span></div>` : ''}
+    </div>
+  `;
+}
+
+function navigateTo(idx) {
+  state.currentModule = idx;
+  state.currentTab = 'concept';
+  splitActive = false;
+  splitRightTab = 'reflect';
+  saveState();
+  updateSidebar();
+  renderModule(idx);
+}
+
+function switchTab(tab) {
+  state.currentTab = tab;
+  saveState();
+  renderModule(state.currentModule);
+}
+
+function renderModule(idx) {
+  const m = MODULES[idx];
+  const el = document.getElementById('content');
+  const tabs = Object.entries(m.tabs);
+  const activeTab = state.currentTab;
+
+  let tabContent = '';
+  if (activeTab === 'quiz') {
+    tabContent = renderQuiz(idx);
+  } else {
+    tabContent = m.tabs[activeTab].content;
+    // video cards disabled
+  }
+
+  el.innerHTML = `
+    <div class="fade-in">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-xs text-muted font-mono">Phase ${m.phase} / Module ${m.num}</span>
+        ${state.completedModules.includes(idx) ? '<span class="text-xs bg-success/10 text-success px-2 py-0.5 rounded">完了</span>' : ''}
+      </div>
+      <h1 class="text-2xl font-black mb-1 flex items-center gap-3"><span>${m.icon}</span> ${m.title}</h1>
+      <p class="text-muted text-sm mb-6">${m.subtitle}</p>
+
+      <div class="flex gap-4 border-b border-border mb-8 print-hide items-center">
+        ${tabs.map(([key, tab]) => `
+          <button onclick="switchTab('${key}')" class="pb-3 text-sm ${activeTab === key ? 'tab-active' : 'tab-inactive'}">${tab.label}</button>
+        `).join('')}
+        <div class="flex-1"></div>
+        <div class="split-btn relative" style="display:none">
+          <button class="pb-3 text-xs text-muted hover:text-ink items-center gap-1 inline-flex" id="splitDropdownBtn" onclick="document.getElementById('splitDropdown').classList.toggle('hidden')">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="12" height="12" rx="2"/><line x1="7" y1="1" x2="7" y2="13"/></svg>
+        ${!state.completedModules.includes(idx) ? `<button onclick="markComplete(${idx})" class="bg-accent text-white px-4 py-2 rounded-lg text-sm hover:bg-accentDark transition-colors">完了にする ✓</button>` : '<span class="text-success text-sm">✓ 完了済み</span>'}
+        ${idx < MODULES.length - 1 ? `<button onclick="navigateTo(${idx + 1})" class="text-sm text-muted hover:text-ink">Module ${MODULES[idx+1].num} →</button>` : '<div></div>'}
+      </div>
+    </div>
+  `;
+
+  // Restore reflections
+  el.querySelectorAll('.reflection-textarea').forEach(ta => {
+    const key = ta.dataset.key;
+    if (state.reflections[key]) ta.value = state.reflections[key];
+    ta.addEventListener('input', () => {
+      state.reflections[key] = ta.value;
+      saveState();
+    });
+  });
+
+  // Restore follow-up answers
+  el.querySelectorAll('.followup-textarea').forEach(ta => {
+    const modIdx = parseInt(ta.dataset.followupModule);
+    const fIdx = parseInt(ta.dataset.followupIdx);
+    ta.addEventListener('input', () => {
+      if (state.followUps[modIdx] && state.followUps[modIdx][fIdx]) {
+        state.followUps[modIdx][fIdx].answer = ta.value;
+        saveState();
+      }
+    });
+  });
+}
+
+function renderQuiz(moduleIdx) {
+  const questions = MODULES[moduleIdx].quiz;
+  const results = state.quizResults[moduleIdx];
+  const answers = state[`quiz_answers_${moduleIdx}`] || {};
+
+  return `
+    <h2 class="text-2xl font-bold mb-6">確認テスト</h2>
+    <p class="text-muted mb-8">学んだ内容を想起してみましょう。思い出す行為自体が記憶を強化します（テスト効果）。</p>
+    <div class="space-y-8">
+      ${questions.map((q, qi) => {
+        const answered = answers[qi] !== undefined;
+        const selectedIdx = answers[qi];
+        return `
+          <div class="border border-border rounded-xl p-6">
+            <p class="font-medium mb-4">${qi + 1}. ${q.question}</p>
+            <div class="space-y-2">
+              ${q.options.map((opt, oi) => {
+                let cls = 'quiz-option border border-border rounded-lg px-4 py-3 text-sm cursor-pointer block w-full text-left';
+                if (answered) {
+                  cls += ' disabled';
+                  if (oi === q.correct) cls += ' correct';
+                  else if (oi === selectedIdx && oi !== q.correct) cls += ' incorrect';
+                } else if (selectedIdx === oi) {
+                  cls += ' selected';
+                }
+                return `<button class="${cls}" onclick="answerQuiz(${moduleIdx}, ${qi}, ${oi})">${opt}</button>`;
+              }).join('')}
+            </div>
+            ${answered ? `
+              <div class="mt-4 p-4 rounded-lg ${selectedIdx === q.correct ? 'bg-success/5 border border-success/20' : 'bg-red-50 border border-red-200'}">
+                <p class="text-sm ${selectedIdx === q.correct ? 'text-success' : 'text-red-600'} font-medium mb-1">${selectedIdx === q.correct ? '✓ 正解' : '✗ 不正解'}</p>
+                <p class="text-sm text-muted">${q.explanation}</p>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+    ${results !== undefined ? `
+      <div class="mt-8 p-6 bg-subtle rounded-xl text-center">
+        <div class="text-3xl font-black mb-2">${results}/${questions.length}</div>
+        <div class="text-muted text-sm">正答率 ${Math.round(results / questions.length * 100)}%</div>
+      </div>
+      ${renderFollowUpSection(moduleIdx)}
+    ` : ''}
+  `;
+}
+
+function answerQuiz(moduleIdx, questionIdx, optionIdx) {
+  const key = `quiz_answers_${moduleIdx}`;
+  if (!state[key]) state[key] = {};
+  if (state[key][questionIdx] !== undefined) return; // already answered
+
+  state[key][questionIdx] = optionIdx;
+
+  // Check if all questions answered
+  const questions = MODULES[moduleIdx].quiz;
+  const answers = state[key];
+  if (Object.keys(answers).length === questions.length) {
+    let correct = 0;
+    questions.forEach((q, i) => { if (answers[i] === q.correct) correct++; });
+    state.quizResults[moduleIdx] = correct;
+  }
+
+  saveState();
+  renderModule(moduleIdx);
+}
+
+function renderFollowUpSection(moduleIdx) {
+  // Generate local follow-ups if not already done
+  if (!state.followUps[moduleIdx] || state.followUps[moduleIdx].filter(f => f.source === 'local').length === 0) {
+    const localQs = getFollowUpQuestions(moduleIdx);
+    if (!state.followUps[moduleIdx]) state.followUps[moduleIdx] = [];
+    state.followUps[moduleIdx] = [
+      ...localQs.map(q => ({ ...q, answer: '', source: 'local' })),
+      ...state.followUps[moduleIdx].filter(f => f.source === 'claude')
+    ];
+    saveState();
+  }
+
+  const followUps = state.followUps[moduleIdx] || [];
+  const localQs = followUps.filter(f => f.source === 'local');
+  const claudeQs = followUps.filter(f => f.source === 'claude');
+  const weakConcepts = analyzeWeakness(moduleIdx);
+  const depth = analyzeReflectionDepth(moduleIdx);
+
+  let analysis = '';
+  if (weakConcepts.length > 0) {
+    analysis += `<div class="text-sm mb-2"><span class="inline-block bg-red-50 text-red-600 px-2 py-0.5 rounded text-xs mr-1">弱点検出</span> ${weakConcepts.join(', ')} の理解が不十分です</div>`;
+  }
+  if (depth === 'shallow') {
+    analysis += `<div class="text-sm mb-2"><span class="inline-block bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded text-xs mr-1">内省</span> より深い振り返りが記憶定着を高めます</div>`;
+  } else if (depth === 'deep') {
+    analysis += `<div class="text-sm mb-2"><span class="inline-block bg-green-50 text-green-700 px-2 py-0.5 rounded text-xs mr-1">内省</span> 深い振り返りができています</div>`;
+  }
+
+  return `
+    <div class="mt-10 pt-8 border-t border-border">
+      <h3 class="text-xl font-bold mb-2">フォローアップ</h3>
+      <p class="text-sm text-muted mb-4">クイズ結果と内省の深さから、理解を補強する質問を提示します</p>
+      ${analysis}
+      ${localQs.length > 0 ? `
+        <div class="mb-6">
+          <div class="text-xs font-bold text-muted uppercase tracking-widest mb-3">ルールベース分析</div>
+          ${localQs.map((q, i) => followUpCardHTML(moduleIdx, i, q)).join('')}
+        </div>
+      ` : ''}
+      ${claudeQs.length > 0 ? `
+        <div class="mb-6">
+          <div class="text-xs font-bold text-muted uppercase tracking-widest mb-3">Claude AI 分析</div>
+          ${claudeQs.map((q, i) => followUpCardHTML(moduleIdx, localQs.length + i, q)).join('')}
+        </div>
+      ` : ''}
+      <button id="claudeAnalysisBtn" onclick="requestClaudeAnalysis(${moduleIdx})" class="mt-2 px-4 py-2 text-sm border border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors">
+        🤖 もっと深く分析（Claude API）
+      </button>
+    </div>
+  `;
+}
+
+function followUpCardHTML(moduleIdx, idx, q) {
+  const savedAnswer = q.answer || '';
+  return `
+    <div class="followup-card ${q.source === 'claude' ? 'from-claude' : 'from-local'} mb-3">
+      <div class="flex items-start gap-2 mb-2">
+        <span class="text-xs px-1.5 py-0.5 rounded ${q.source === 'claude' ? 'bg-accent/10 text-accent' : 'bg-success/10 text-success'}">${q.source === 'claude' ? 'AI' : 'auto'}</span>
+        <p class="text-sm font-medium flex-1">${q.question}</p>
+      </div>
+      <details class="mb-2">
+        <summary class="text-xs text-muted cursor-pointer hover:text-ink">💡 ヒント</summary>
+        <p class="text-xs text-muted mt-1 pl-2">${q.hint}</p>
+      </details>
+      <textarea class="followup-textarea" data-followup-module="${moduleIdx}" data-followup-idx="${idx}" placeholder="ここに回答を書く…">${savedAnswer}</textarea>
+    </div>
+  `;
+}
+
+function markComplete(idx) {
+  if (!state.completedModules.includes(idx)) {
+    state.completedModules.push(idx);
+    saveState();
+    updateSidebar();
+    updateGlobalProgress();
+    renderModule(idx);
+  }
+}
+
+function showGlossary() {
+  state.currentModule = -1;
+  updateSidebar();
+  const el = document.getElementById('content');
+  el.innerHTML = `
+    <div class="fade-in">
+      <h1 class="text-2xl font-black mb-6">📖 用語集（Glossary）</h1>
+      <div class="space-y-4 text-sm">
+        <div class="border-b border-border pb-3"><strong>Attention Mechanism</strong>: 入力の各部分が他のどの部分に注目すべきかを動的に計算する仕組み（Transformer の中核）</div>
+        <div class="border-b border-border pb-3"><strong>Chunking（チャンキング）</strong>: 情報を意味のある単位に分割すること。認知科学では WM の効率化手法、RAG ではドキュメント分割戦略</div>
+        <div class="border-b border-border pb-3"><strong>Context Window</strong>: LLM が一度に処理できるトークン数の上限。ワーキングメモリに相当</div>
+        <div class="border-b border-border pb-3"><strong>Desirable Difficulties（望ましい困難）</strong>: 学習時の適度な困難が長期記憶を強化する現象</div>
+        <div class="border-b border-border pb-3"><strong>Embedding（エンベディング）</strong>: テキストを意味を保持した数値ベクトルに変換する技術</div>
+        <div class="border-b border-border pb-3"><strong>Encoding Specificity（符号化特異性）</strong>: 記憶は符号化時の文脈と一致する手がかりで想起されやすい</div>
+        <div class="border-b border-border pb-3"><strong>Episodic Memory（エピソード記憶）</strong>: 個人的体験の記憶。「いつ・どこで・何を」の時空間タグ付き</div>
+        <div class="border-b border-border pb-3"><strong>Forgetting Curve（忘却曲線）</strong>: 時間経過に伴う記憶保持率の減少パターン（Ebbinghaus, 1885）</div>
+        <div class="border-b border-border pb-3"><strong>Levels of Processing（処理水準説）</strong>: 深い意味的処理ほど記憶に定着する（Craik & Lockhart, 1972）</div>
+        <div class="border-b border-border pb-3"><strong>Multi-Store Model</strong>: 感覚記憶→短期記憶→長期記憶の3段階モデル（Atkinson & Shiffrin, 1968）</div>
+        <div class="border-b border-border pb-3"><strong>Procedural Memory（手続き記憶）</strong>: スキル・習慣の暗黙的記憶。言語化しにくい「やり方」の知識</div>
+        <div class="border-b border-border pb-3"><strong>RAG (Retrieval-Augmented Generation)</strong>: 外部知識ストアから関連情報を検索してコンテキストに注入する技術</div>
+        <div class="border-b border-border pb-3"><strong>Reflection（内省）</strong>: エピソード記憶を抽象化して高次の洞察（意味記憶）を生成するプロセス</div>
+        <div class="border-b border-border pb-3"><strong>Semantic Memory（意味記憶）</strong>: 一般的な知識・事実。体験から抽象化された汎用知識</div>
+        <div class="border-b border-border pb-3"><strong>Spaced Repetition（間隔反復）</strong>: 忘却曲線に対抗して最適タイミングで復習する手法</div>
+        <div class="border-b border-border pb-3"><strong>Testing Effect（テスト効果）</strong>: 想起練習が記憶定着を促進する現象（Roediger & Karpicke, 2006）</div>
+        <div class="border-b border-border pb-3"><strong>Token（トークン）</strong>: LLM が処理する最小単位。単語の断片。日本語1文字 ≈ 1-2トークン</div>
+        <div class="border-b border-border pb-3"><strong>Working Memory（ワーキングメモリ）</strong>: 情報の一時保持と能動的処理を行うシステム（Baddeley & Hitch, 1974）</div>
+      </div>
+    </div>
+  `;
+}
+
+function exportNotes() {
+  let notes = '# 記憶の科学とエージェント設計 — 学習ノート\n\n';
+  notes += `書き出し日時: ${new Date().toLocaleString('ja-JP')}\n\n`;
+
+  MODULES.forEach((m, idx) => {
+    notes += `## Module ${m.num}: ${m.title}\n\n`;
+    // Reflections
+    const reflKeys = Object.keys(state.reflections).filter(k => k.startsWith(`m${idx}-`));
+    if (reflKeys.length > 0) {
+      notes += '### Reflections\n\n';
+      reflKeys.forEach(k => {
+        if (state.reflections[k]) notes += `${k}: ${state.reflections[k]}\n\n`;
+      });
+    }
+    // Quiz
+    if (state.quizResults[idx] !== undefined) {
+      notes += `### Quiz Score: ${state.quizResults[idx]}/${m.quiz.length}\n\n`;
+    }
+    notes += '---\n\n';
+  });
+
+  const blob = new Blob([notes], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'memory-learning-notes.md';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// VIDEO: Timestamp mapping per module
+// ============================================================
+const VIDEO_URL = 'video.mp4';
+const VIDEO_TIMESTAMPS = {
+  0:  { start: 0,   end: 40,  label: '導入: 記憶とは何か' },
+  1:  { start: 40,  end: 90,  label: '記憶の種類と分類' },
+  2:  { start: 90,  end: 150, label: '忘却のメカニズム' },
+  3:  { start: 150, end: 210, label: '脳の記憶システム' },
+  4:  { start: 210, end: 270, label: 'ニューラルネットワークと記憶' },
+  5:  { start: 270, end: 330, label: 'AI の外部記憶と検索' },
+  6:  { start: 330, end: 390, label: 'エージェントの記憶設計' },
+  7:  { start: 390, end: 420, label: '最新の記憶アーキテクチャ' },
+  12: { start: 420, end: 460, label: '記憶が生む UX' },
+  13: { start: 460, end: 502, label: '記憶の設計原則' },
+};
+
+function videoCardHTML(moduleIdx) {
+  const ts = VIDEO_TIMESTAMPS[moduleIdx];
+  if (!ts) return '';
+  const mm = String(Math.floor(ts.start / 60)).padStart(1, '0');
+  const ss = String(ts.start % 60).padStart(2, '0');
+  return '<div class="video-card mb-6" onclick="playVideoAt(' + ts.start + ')">' +
+    '<div style="position:relative">' +
+    '<video src="' + VIDEO_URL + '#t=' + ts.start + '" preload="metadata" muted style="pointer-events:none"></video>' +
+    '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25)">' +
+    '<div style="width:48px;height:48px;background:rgba(255,255,255,0.9);border-radius:50%;display:flex;align-items:center;justify-content:center">' +
+    '<svg width="20" height="20" viewBox="0 0 20 20" fill="#1a1a2e"><polygon points="6,3 18,10 6,17"/></svg></div></div></div>' +
+    '<div class="video-meta"><div class="video-title">🎬 ' + ts.label + '</div>' +
+    '<div class="video-time">' + mm + ':' + ss + ' から視聴</div></div></div>';
+}
+
+function playVideoAt(seconds) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.onclick = function(e) { if (e.target === overlay) { overlay.querySelector('video').pause(); overlay.remove(); } };
+  overlay.innerHTML = '<div style="width:100%;max-width:800px"><div class="video-full">' +
+    '<video src="' + VIDEO_URL + '#t=' + seconds + '" controls autoplay style="width:100%"></video></div>' +
+    '<div style="text-align:center;margin-top:12px"><button onclick="this.closest(\'div[style]\').querySelector(\'video\').pause();this.closest(\'div[style*=fixed]\').remove()" ' +
+    'style="color:white;background:none;border:1px solid rgba(255,255,255,0.3);padding:6px 20px;border-radius:8px;cursor:pointer;font-size:13px">閉じる</button></div></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('video').currentTime = seconds;
+}
+
+// ============================================================
+// SPLIT VIEW (Desktop)
+// ============================================================
+let splitActive = false;
+let splitRightTab = 'reflect';
+function toggleSplitView(idx, rightTab) {
+  // Close dropdown
+  const dd = document.getElementById('splitDropdown');
+  if (dd) dd.classList.add('hidden');
+
+  // If null passed or same tab clicked while active, close split view
+  if (rightTab === null || (splitActive && rightTab === splitRightTab)) {
+    splitActive = false;
+    splitRightTab = 'reflect';
+    const sv = document.getElementById('splitView');
+    const single = document.getElementById('singleView');
+    if (sv) sv.classList.remove('active');
+    if (single) single.style.display = '';
+    document.querySelector('.main-content').classList.remove('split-view-active');
+    renderModule(idx);
+    return;
+  }
+
+  splitActive = true;
+  splitRightTab = rightTab || 'reflect';
+  const sv = document.getElementById('splitView');
+  const single = document.getElementById('singleView');
+  const m = MODULES[idx];
+
+  sv.classList.add('active');
+  single.style.display = 'none';
+  document.querySelector('.main-content').classList.add('split-view-active');
+
+  // Left pane: always concept
+  document.getElementById('splitLeft').innerHTML = '<h3 class="text-lg font-bold mb-4 sticky top-0 bg-paper py-2 z-10 border-b border-border">📖 概念</h3>' + m.tabs.concept.content;
+
+  // Right pane: depends on splitRightTab
+  const rightPane = document.getElementById('splitRight');
+  const labelMap = { reflect: '✍️ 内省', quiz: '🧪 確認テスト' };
+  const rightLabel = labelMap[splitRightTab] || '✍️ 内省';
+
+  if (splitRightTab === 'quiz') {
+    rightPane.innerHTML = '<h3 class="text-lg font-bold mb-4 sticky top-0 bg-paper py-2 z-10 border-b border-border">' + rightLabel + '</h3>' + renderQuiz(idx);
+  } else {
+    rightPane.innerHTML = '<h3 class="text-lg font-bold mb-4 sticky top-0 bg-paper py-2 z-10 border-b border-border">' + rightLabel + '</h3>' + m.tabs.reflect.content;
+  }
+
+  // Restore reflections/textareas in right pane (for reflect tab)
+  rightPane.querySelectorAll('.reflection-textarea').forEach(ta => {
+    const key = ta.dataset.key;
+    if (state.reflections[key]) ta.value = state.reflections[key];
+    ta.addEventListener('input', () => { state.reflections[key] = ta.value; saveState(); });
+  });
+
+  // Restore follow-up textareas in right pane (for quiz tab)
+  rightPane.querySelectorAll('.followup-textarea').forEach(ta => {
+    const modIdx = parseInt(ta.dataset.followupModule);
+    const fIdx = parseInt(ta.dataset.followupIdx);
+    ta.addEventListener('input', () => {
+      if (state.followUps[modIdx] && state.followUps[modIdx][fIdx]) {
+        state.followUps[modIdx][fIdx].answer = ta.value;
+        saveState();
+      }
+    });
+  });
+
+  // Update button label
+  const btnLabel = document.getElementById('splitBtnLabel');
+  if (btnLabel) {
+    const shortMap = { reflect: '内省', quiz: '確認テスト' };
+    btnLabel.textContent = '概念+' + (shortMap[splitRightTab] || '内省');
+  }
+}
+
+// Close split dropdown on click outside
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('splitDropdown');
+  const btn = document.getElementById('splitDropdownBtn');
+  if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
+    dd.classList.add('hidden');
+  }
+});
+
+// ============================================================
+// MOBILE NAVIGATION
+// ============================================================
+function toggleMobileMenu() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.querySelector('.sidebar-overlay').classList.toggle('open');
+}
+function closeMobileMenu() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.querySelector('.sidebar-overlay').classList.remove('open');
+}
+function navigatePrev() {
+  if (state.currentModule > 0) navigateTo(state.currentModule - 1);
+  else showOverview();
+  closeMobileMenu();
+}
+function navigateNext() {
+  if (state.currentModule < MODULES.length - 1) navigateTo(state.currentModule + 1);
+  closeMobileMenu();
+}
+// Close sidebar on module navigation (mobile)
+const _origNavigateTo = navigateTo;
+navigateTo = function(idx) { _origNavigateTo(idx); closeMobileMenu(); };
+
+// ============================================================
+// INIT
+// ============================================================
+updateSidebar();
+updateGlobalProgress();
+if (state.currentModule >= 0) {
+  renderModule(state.currentModule);
+} else {
+  renderOverview();
+}
+</script>
+</body>
+</html>
