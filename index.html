@@ -187,7 +187,7 @@ tailwind.config = {
       <span class="opacity-50 font-mono mr-2">14</span> 記憶の設計原則
     </a>
     <a href="#" onclick="navigateTo(14); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="14">
-      <span class="opacity-50 font-mono mr-2">15</span> HP プロダクト応用
+      <span class="opacity-50 font-mono mr-2">15</span> プロダクト応用演習
     </a>
     <a href="#" onclick="navigateTo(15); return false;" class="sidebar-link block px-3 py-1.5 rounded-lg text-sm mb-0.5" data-module="15">
       <span class="opacity-50 font-mono mr-2">16</span> マルチエージェント記憶
@@ -348,17 +348,17 @@ const MODULES = [
 <p class="text-muted mb-8">学んだ概念を、あなたの実際の仕事に結びつけます。</p>
 
 <div class="bg-subtle p-6 rounded-xl mb-8">
-  <h3 class="font-bold mb-3">🏥 HP プロダクトへの応用</h3>
-  <p class="text-sm mb-4">MediNavi で医師が患者の情報を「記憶」するプロセスを3段階モデルで分析してみましょう:</p>
+  <h3 class="font-bold mb-3">🤖 AI プロダクトへの応用</h3>
+  <p class="text-sm mb-4">カスタマーサポート AI が顧客の情報を「記憶」するプロセスを3段階モデルで分析してみましょう:</p>
   <ul class="text-sm space-y-2">
-    <li><strong>符号化の課題</strong>: 医師が診察中に得た情報のうち、システムに記録される（符号化される）のはどの程度？カルテに書かれない「印象」「文脈」は失われていないか？</li>
+    <li><strong>符号化の課題</strong>: 顧客とのやり取りで得た情報のうち、システムに記録される（符号化される）のはどの程度？記録されない「ニュアンス」「文脈」は失われていないか？</li>
     <li><strong>保持の課題</strong>: 記録された情報は、適切な形式で保持されているか？構造化データと自由テキストの混在は検索を阻害しないか？</li>
-    <li><strong>検索の課題</strong>: 次の診察時に、過去の文脈を効率よく「想起」できる UI になっているか？</li>
+    <li><strong>検索の課題</strong>: 次の問い合わせ時に、過去の文脈を効率よく「想起」できる UI になっているか？</li>
   </ul>
 </div>
 
 <div>
-  <label class="block font-medium mb-2">あなたの HP プロダクトで、3段階のうちどこが一番のボトルネックだと思いますか？理由と改善アイデアを書いてみてください。</label>
+  <label class="block font-medium mb-2">あなたの AI プロダクトで、3段階のうちどこが一番のボトルネックだと思いますか？理由と改善アイデアを書いてみてください。</label>
   <textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m0-connect" placeholder="符号化/保持/検索、どこに一番課題がある？"></textarea>
 </div>
 `
@@ -522,18 +522,18 @@ const MODULES = [
       content: `
 <h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
 <div class="bg-subtle p-6 rounded-xl mb-8">
-  <h3 class="font-bold mb-3">🏥 HP プロダクトへの応用</h3>
-  <p class="text-sm mb-4">医師が患者を診る場面で、異なる記憶タイプがどう機能しているか考えてみましょう:</p>
+  <h3 class="font-bold mb-3">🤖 AI プロダクトへの応用</h3>
+  <p class="text-sm mb-4">EC サイトのレコメンドエンジンが顧客を理解する場面で、異なる記憶タイプがどう機能しているか考えてみましょう:</p>
   <ul class="text-sm space-y-2">
-    <li><strong>ワーキングメモリ</strong>: 今この瞬間の患者の訴え、バイタル、表情を統合処理</li>
-    <li><strong>エピソード記憶</strong>: 「前回の診察で〇〇と言っていた」「先月検査値が急変した」</li>
-    <li><strong>意味記憶</strong>: 医学知識、ガイドライン、薬の副作用情報</li>
-    <li><strong>手続き記憶</strong>: 問診の進め方、触診の手技、カルテの書き方</li>
+    <li><strong>ワーキングメモリ</strong>: 今この瞬間の閲覧行動、検索キーワード、カートの内容を統合処理</li>
+    <li><strong>エピソード記憶</strong>: 「先月この商品を検討していた」「前回のセッションでレビューを読んでいた」</li>
+    <li><strong>意味記憶</strong>: 商品カテゴリの関係性、トレンド情報、ユーザーセグメントの特徴</li>
+    <li><strong>手続き記憶</strong>: レコメンドアルゴリズムのパターン、A/B テストの運用手順</li>
   </ul>
-  <p class="text-sm mt-4">AI がこれらのどの記憶を支援できると、医師の意思決定の質が最も上がるか？</p>
+  <p class="text-sm mt-4">AI がこれらのどの記憶を支援できると、ユーザー体験の質が最も上がるか？</p>
 </div>
 <div>
-  <label class="block font-medium mb-2">MediNavi が医師の「記憶」を補完するとしたら、4種類のうちどこから始めるべきですか？その理由を書いてみてください。</label>
+  <label class="block font-medium mb-2">AI プロダクトがユーザーの「記憶」を補完するとしたら、4種類のうちどこから始めるべきですか？その理由を書いてみてください。</label>
   <textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m1-connect" placeholder="エピソード記憶の補完が最優先だと思う。なぜなら..."></textarea>
 </div>
 `
@@ -805,7 +805,7 @@ const MODULES = [
   quiz: [
     { question: '海馬の記憶における役割として最も適切なのはどれ？', options: ['記憶の長期保存場所', '記憶のインデックス（分散保存された記憶を結びつける）', '手続き記憶の処理', '感覚情報の入力処理'], correct: 1, explanation: '海馬は記憶の「インデックス」。記憶の本体は大脳皮質に分散保存され、海馬がそれらの断片を結びつける。MEMORY.md の L1 参照リストに対応。' },
     { question: '記憶固定化（Consolidation）と Generative Agents の Reflection の共通点はどれ？', options: ['どちらも記憶を削除する', 'どちらもエピソード記憶を抽象化してパターン/洞察に変換する', 'どちらもリアルタイムで動作する', 'どちらも視覚情報を処理する'], correct: 1, explanation: '記憶固定化は睡眠中にエピソードを統合・抽象化。Reflection も蓄積された観察から高次の洞察を生成。ともに「具体→抽象」の変換プロセス。' },
-    { question: 'Hebb の法則「一緒に発火するニューロンは一緒に結合される」のAI記憶設計への示唆はどれ？', options: ['全ての記憶を均等に扱う', 'よく一緒に参照される記憶の関連付けを自動強化する', '古い記憶を削除する', '記憶を圧縮して保存する'], correct: 1, explanation: 'Hebbian Learning のAI版: 「患者Aの情報を参照するときは常にガイドラインBも参照される」→ A-B間のリンクを強化し、Aが想起されたらBも自動的に提示。' }
+    { question: 'Hebb の法則「一緒に発火するニューロンは一緒に結合される」のAI記憶設計への示唆はどれ？', options: ['全ての記憶を均等に扱う', 'よく一緒に参照される記憶の関連付けを自動強化する', '古い記憶を削除する', '記憶を圧縮して保存する'], correct: 1, explanation: 'Hebbian Learning のAI版: 「顧客Aの情報を参照するときは常にドキュメントBも参照される」→ A-B間のリンクを強化し、Aが想起されたらBも自動的に提示。' }
   ]
 },
 
@@ -923,17 +923,17 @@ const MODULES = [
       content: `
 <h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
 <div class="bg-subtle p-6 rounded-xl mb-8">
-  <h3 class="font-bold mb-3">🏥 HP プロダクトへの応用</h3>
-  <p class="text-sm mb-4">MediNavi が LLM を使って医師を支援する場合、コンテキストウィンドウの「容量制限」はUX設計に直結します:</p>
+  <h3 class="font-bold mb-3">🤖 AI プロダクトへの応用</h3>
+  <p class="text-sm mb-4">AI アシスタントが LLM を使ってユーザーを支援する場合、コンテキストウィンドウの「容量制限」はUX設計に直結します:</p>
   <ul class="text-sm space-y-2">
-    <li><strong>何をコンテキストに載せるか？</strong> 患者の全カルテ？直近3回の診療録？関連するガイドライン？</li>
-    <li><strong>優先順位はどう決める？</strong> 「この患者にとって今最も関連性の高い情報」を選ぶロジックが必要</li>
+    <li><strong>何をコンテキストに載せるか？</strong> ユーザーの全履歴？直近3回の会話？関連するナレッジベース？</li>
+    <li><strong>優先順位はどう決める？</strong> 「このユーザーにとって今最も関連性の高い情報」を選ぶロジックが必要</li>
     <li><strong>載せきれない情報はどうする？</strong> → これが次の Module（RAG）のテーマ</li>
   </ul>
 </div>
 <div>
-  <label class="block font-medium mb-2">医師が患者を診る瞬間に「コンテキストウィンドウに載せるべき情報」のTop 5を、優先度順に挙げてみてください。</label>
-  <textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m3-connect" placeholder="1. 現在の主訴と症状\n2. 直近の検査結果\n3. ..."></textarea>
+  <label class="block font-medium mb-2">AI アシスタントがユーザーを支援する瞬間に「コンテキストウィンドウに載せるべき情報」のTop 5を、優先度順に挙げてみてください。</label>
+  <textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m3-connect" placeholder="1. 現在のタスクと目的\n2. 直近のやり取りの文脈\n3. ..."></textarea>
 </div>
 `
     }
@@ -1086,18 +1086,18 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
       content: `
 <h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
 <div class="bg-subtle p-6 rounded-xl mb-8">
-  <h3 class="font-bold mb-3">🏥 HP プロダクトへの応用</h3>
-  <p class="text-sm mb-4">MediNavi に RAG を実装する場合の設計判断:</p>
+  <h3 class="font-bold mb-3">🤖 AI プロダクトへの応用</h3>
+  <p class="text-sm mb-4">教育 AI チューターに RAG を実装する場合の設計判断:</p>
   <ul class="text-sm space-y-2">
-    <li><strong>何を Index に含めるか？</strong> カルテ、ガイドライン、薬剤情報、過去の類似症例...</li>
-    <li><strong>チャンキング戦略</strong>: 診療録は「SOAP」の各セクションで分割？問題リストで分割？</li>
-    <li><strong>検索の手がかり</strong>: 医師の入力（症状、疑い病名）をクエリとして、何を検索するか？</li>
-    <li><strong>プライバシー</strong>: 患者データをエンベディングにしてベクトル DB に保存する際のセキュリティ要件</li>
+    <li><strong>何を Index に含めるか？</strong> 教科書、過去の学習ログ、練習問題、参考資料...</li>
+    <li><strong>チャンキング戦略</strong>: 教科書はセクション単位で分割？概念単位で分割？難易度別？</li>
+    <li><strong>検索の手がかり</strong>: 学習者の質問や現在の理解度をクエリとして、何を検索するか？</li>
+    <li><strong>プライバシー</strong>: 学習者のデータをエンベディングにしてベクトル DB に保存する際のセキュリティ要件</li>
   </ul>
 </div>
 <div>
-  <label class="block font-medium mb-2">MediNavi で RAG を実装するとしたら、最初にベクトル化すべきデータソースは何ですか？その理由と、チャンキング戦略も考えてみてください。</label>
-  <textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m4-connect" placeholder="まずはガイドラインから。理由は...チャンキングは疾患別+推奨グレード別..."></textarea>
+  <label class="block font-medium mb-2">教育 AI チューターで RAG を実装するとしたら、最初にベクトル化すべきデータソースは何ですか？その理由と、チャンキング戦略も考えてみてください。</label>
+  <textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m4-connect" placeholder="まずは教科書コンテンツから。理由は...チャンキングはトピック別+難易度別..."></textarea>
 </div>
 `
     }
@@ -1267,11 +1267,11 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
       content: `
 <h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
 <div class="bg-subtle p-6 rounded-xl mb-8">
-  <h3 class="font-bold mb-3">🏥 HP プロダクト + 🤖 Claude Code 統合設計</h3>
+  <h3 class="font-bold mb-3">🤖 AI エージェント統合設計</h3>
   <p class="text-sm mb-4">Phase 1-2 の学びを統合して、「記憶を持つ AI エージェント」の設計原則を言語化しましょう:</p>
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
     <div class="border border-border p-3 rounded-lg">
-      <div class="font-bold mb-1">Claude Code の次の進化</div>
+      <div class="font-bold mb-1">開発支援エージェントの進化</div>
       <ul class="text-muted space-y-1">
         <li>Reflection の自動化</li>
         <li>Importance スコアリング</li>
@@ -1280,11 +1280,11 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
       </ul>
     </div>
     <div class="border border-border p-3 rounded-lg">
-      <div class="font-bold mb-1">HP プロダクトの記憶 UX</div>
+      <div class="font-bold mb-1">業務支援 AI の記憶 UX</div>
       <ul class="text-muted space-y-1">
-        <li>患者のエピソード記憶</li>
-        <li>医学知識の意味記憶</li>
-        <li>診療パターンの手続き記憶</li>
+        <li>顧客とのやり取りのエピソード記憶</li>
+        <li>業務知識の意味記憶</li>
+        <li>業務パターンの手続き記憶</li>
         <li>文脈に応じた想起</li>
       </ul>
     </div>
@@ -1374,8 +1374,8 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m7-r1" placeholder="選択的注意と重要度スコアリング..."></textarea></div>
   <div><label class="block font-medium mb-2">Q2. あなたの6層設計を Letta の3層（Core/Archival/Recall）にマッピングするとどうなりますか？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m7-r2" placeholder="Core = L1+L2、Archival = L4、Recall = L3+L5..."></textarea></div>
-  <div><label class="block font-medium mb-2">Q3. 「透明性と制御」のトレンドが医療 AI で特に重要な理由は？</label>
-  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m7-r3" placeholder="医師が AI の記憶を信頼するには..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 「透明性と制御」のトレンドが重要な意思決定を支援する AI で特に重要な理由は？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m7-r3" placeholder="ユーザーが AI の記憶を信頼するには..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
     connect: { label: '実務接続', content: `
@@ -1509,7 +1509,7 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 <div class="space-y-8">
   <div><label class="block font-medium mb-2">Q1. あなたの Claude Code 体験は、GUI/Conversational/Agentic のどこに位置しますか？具体例で説明してください。</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m8-r1" placeholder="タスク管理は Agentic に近い（自律的に提案）、コード編集は..."></textarea></div>
-  <div><label class="block font-medium mb-2">Q2. 「Progressive Autonomy」を MediNavi で実装するとしたら、どんなグラデーションが考えられますか？</label>
+  <div><label class="block font-medium mb-2">Q2. 「Progressive Autonomy」をあなたの AI プロダクトで実装するとしたら、どんなグラデーションが考えられますか？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m8-r2" placeholder="初期: 情報提示のみ → 中期: 推薦付き → 成熟期: 自動実行+事後確認"></textarea></div>
   <div><label class="block font-medium mb-2">Q3. 従来の GUI デザインスキルのうち、Agentic UX でも活きるものと、新たに必要なスキルは？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m8-r3" placeholder="活きる: 情報設計、ユーザーリサーチ。新規: 委任設計、信頼校正..."></textarea></div>
@@ -1518,16 +1518,16 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
     connect: { label: '実務接続', content: `
 <h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
 <div class="bg-subtle p-6 rounded-xl mb-8">
-  <h3 class="font-bold mb-3">🏥 HP プロダクトのパラダイムシフト</h3>
-  <p class="text-sm">MediNavi を「操作型→委任型」に進化させるとき、5つの設計原則をどう適用しますか？</p>
+  <h3 class="font-bold mb-3">🤖 AI プロダクトのパラダイムシフト</h3>
+  <p class="text-sm">あなたの AI プロダクトを「操作型→委任型」に進化させるとき、5つの設計原則をどう適用しますか？</p>
 </div>
-<div><label class="block font-medium mb-2">MediNavi の「Agentic 化」のロードマップを、5原則に沿って書いてみてください。</label>
+<div><label class="block font-medium mb-2">AI プロダクトの「Agentic 化」のロードマップを、5原則に沿って書いてみてください。</label>
 <textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m8-connect" placeholder="Phase 1（Transparency）: AI の推論根拠を可視化\nPhase 2..."></textarea></div>` }
   },
   quiz: [
     { question: 'Shneiderman の HCAI の主張として正しいのはどれ？', options: ['自動化と人間の制御はトレードオフ', '自動化と人間の制御は独立した軸であり両方を同時に高められる', '完全自動化が最終目標', '人間の介入は最小限にすべき'], correct: 1, explanation: 'Shneiderman は「高い自動化 + 高い制御」の両立を主張。自動化を上げても、適切な設計により人間の制御を維持・強化できる。' },
     { question: 'Agentic UX で「記憶」が果たす独自の役割はどれ？', options: ['処理速度の向上', '長期的な文脈によるパーソナライゼーションと信頼構築', 'ストレージコストの削減', 'UI の簡素化'], correct: 1, explanation: '記憶がAgentic UXの根幹。記憶により「自分を理解している」感覚が生まれ、委任への信頼が構築される。GUI/Conversational にはない、Agentic 固有の要素。' },
-    { question: '「Graceful Handoff」が特に重要な場面はどれ？', options: ['AI の推薦が正しい場合', 'AI が限界に達し人間の判断が必要な場合', 'ユーザーが初めてシステムを使う場合', 'バッチ処理を実行する場合'], correct: 1, explanation: 'Graceful Handoff はエージェントの限界を認識し、スムーズに人間に制御を戻す設計。医療 AI では「AI の確信度が低い症例」で特に重要。' }
+    { question: '「Graceful Handoff」が特に重要な場面はどれ？', options: ['AI の推薦が正しい場合', 'AI が限界に達し人間の判断が必要な場合', 'ユーザーが初めてシステムを使う場合', 'バッチ処理を実行する場合'], correct: 1, explanation: 'Graceful Handoff はエージェントの限界を認識し、スムーズに人間に制御を戻す設計。例えば「AI の確信度が低いケース」で特に重要。' }
   ]
 },
 
@@ -1539,7 +1539,7 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
   num: '10',
   phase: 3,
   title: 'Trust Calibration',
-  subtitle: '過信・過小信頼と医療 AI の信頼設計',
+  subtitle: '過信・過小信頼と AI の信頼設計',
   icon: '⚖️',
   tabs: {
     concept: { label: '概念', content: `
@@ -1570,7 +1570,7 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
   <div class="border border-border p-3 rounded-lg"><strong>プライバシー</strong>: 「何をどこまで覚えているか」のユーザー制御</div>
 </div>
 
-<h3 class="text-lg font-bold mb-4">医療 AI 信頼設計フレームワーク</h3>
+<h3 class="text-lg font-bold mb-4">AI 信頼設計フレームワーク</h3>
 <ul class="space-y-2 text-sm mb-6">
   <li><strong>信頼の可視化</strong>: 推薦と根拠を同時に表示</li>
   <li><strong>不確実性の表示</strong>: 確信度スコア、エビデンスレベル</li>
@@ -1590,25 +1590,25 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 <div class="space-y-8">
   <div><label class="block font-medium mb-2">Q1. あなた自身の Claude Code 利用で「過信」「過小信頼」の例はありますか？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-r1" placeholder="過信: コード生成をそのまま受け入れた。過小信頼: 記憶の提案を無視した..."></textarea></div>
-  <div><label class="block font-medium mb-2">Q2. 「記憶の出典表示」を HP プロダクトで実装するとしたら、どんな UI が考えられますか？</label>
-  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-r2" placeholder="推薦の横に小さく「2024/3/15 の診察記録に基づく」と表示..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 「記憶の出典表示」をあなたの AI プロダクトで実装するとしたら、どんな UI が考えられますか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-r2" placeholder="推薦の横に小さく「2024/3/15 のやり取りに基づく」と表示..."></textarea></div>
   <div><label class="block font-medium mb-2">Q3. 記憶を持つ AI の「過信」は、記憶を持たない AI の「過信」とどう違いますか？</label>
-  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-r3" placeholder="記憶がある分「この患者のことをわかっている」と思い込むリスク..."></textarea></div>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-r3" placeholder="記憶がある分「このユーザーのことをわかっている」と思い込むリスク..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
     connect: { label: '実務接続', content: `
 <h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
 <div class="bg-subtle p-6 rounded-xl mb-8">
-  <h3 class="font-bold mb-3">🏥 MediNavi の信頼設計</h3>
-  <p class="text-sm">医師が MediNavi の「記憶に基づく推薦」を適切に信頼するための UI を設計してください。</p>
+  <h3 class="font-bold mb-3">🤖 AI プロダクトの信頼設計</h3>
+  <p class="text-sm">ユーザーが AI アシスタントの「記憶に基づく推薦」を適切に信頼するための UI を設計してください。</p>
 </div>
-<div><label class="block font-medium mb-2">信頼設計フレームワークの4要素（可視化・不確実性・出典・Override）を MediNavi に具体的に適用した UI を記述してください。</label>
-<textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-connect" placeholder="可視化: 患者カードに「AI記憶サマリー」セクション\n不確実性: 確信度バー..."></textarea></div>` }
+<div><label class="block font-medium mb-2">信頼設計フレームワークの4要素（可視化・不確実性・出典・Override）を AI アシスタントに具体的に適用した UI を記述してください。</label>
+<textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m9-connect" placeholder="可視化: ユーザーカードに「AI記憶サマリー」セクション\n不確実性: 確信度バー..."></textarea></div>` }
   },
   quiz: [
     { question: 'Lee & See の信頼モデルで、AI の「判断プロセスの透明性」が支えるのはどの信頼要素？', options: ['Performance（能力）', 'Process（プロセス）', 'Purpose（意図）', 'Precision（精度）'], correct: 1, explanation: 'Process trust はシステムの判断プロセスへの理解と信頼。AI がどうやって結論に至ったかが見えると Process trust が高まる。' },
     { question: '記憶を持つ AI に固有の信頼課題として最も重要なのはどれ？', options: ['処理速度の保証', '記憶の正確性と鮮度の透明性', 'UI のレスポンシブデザイン', 'マルチ言語対応'], correct: 1, explanation: '記憶を持つ AI では「覚えている内容が正しいか」「情報が古くないか」が信頼の根幹。記憶のない AI にはこの課題がない。' },
-    { question: 'Parasuraman & Riley の「自動化への過信」が特に危険な状況はどれ？', options: ['AI の精度が低い場合', 'AI の信頼性が高く、稀なエラーを見逃しやすい場合', 'ユーザーが初心者の場合', 'データ量が少ない場合'], correct: 1, explanation: '信頼性が高いシステムほどユーザーのモニタリングが低下し、稀だが重大なエラーを見逃す「自動化バイアス」が起きやすい。医療 AI で特に危険。' }
+    { question: 'Parasuraman & Riley の「自動化への過信」が特に危険な状況はどれ？', options: ['AI の精度が低い場合', 'AI の信頼性が高く、稀なエラーを見逃しやすい場合', 'ユーザーが初心者の場合', 'データ量が少ない場合'], correct: 1, explanation: '信頼性が高いシステムほどユーザーのモニタリングが低下し、稀だが重大なエラーを見逃す「自動化バイアス」が起きやすい。重要な意思決定を支援する AI で特に危険。' }
   ]
 },
 
@@ -1643,10 +1643,10 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 <div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0"><table class="w-full text-sm mb-6 border border-border rounded-lg overflow-hidden min-w-[500px]">
   <thead class="bg-subtle"><tr><th class="px-3 py-2 text-left">負荷の種類</th><th class="px-3 py-2 text-left">AI の引き受け方</th><th class="px-3 py-2 text-left">具体例</th></tr></thead>
   <tbody>
-    <tr class="border-t border-border"><td class="px-3 py-2">記憶負荷</td><td class="px-3 py-2">記憶・保持を代行</td><td class="px-3 py-2">過去の診療記録を自動サマリー</td></tr>
-    <tr class="border-t border-border"><td class="px-3 py-2">検索負荷</td><td class="px-3 py-2">関連情報の探索を代行</td><td class="px-3 py-2">関連ガイドラインの自動提示</td></tr>
-    <tr class="border-t border-border"><td class="px-3 py-2">統合負荷</td><td class="px-3 py-2">複数情報源の統合</td><td class="px-3 py-2">検査値+症状+既往歴の統合分析</td></tr>
-    <tr class="border-t border-border"><td class="px-3 py-2">判断負荷</td><td class="px-3 py-2">選択肢の整理</td><td class="px-3 py-2">鑑別診断リストと確率表示</td></tr>
+    <tr class="border-t border-border"><td class="px-3 py-2">記憶負荷</td><td class="px-3 py-2">記憶・保持を代行</td><td class="px-3 py-2">過去のやり取りの履歴を自動サマリー</td></tr>
+    <tr class="border-t border-border"><td class="px-3 py-2">検索負荷</td><td class="px-3 py-2">関連情報の探索を代行</td><td class="px-3 py-2">関連ドキュメントの自動提示</td></tr>
+    <tr class="border-t border-border"><td class="px-3 py-2">統合負荷</td><td class="px-3 py-2">複数情報源の統合</td><td class="px-3 py-2">複数のデータソースからの統合分析</td></tr>
+    <tr class="border-t border-border"><td class="px-3 py-2">判断負荷</td><td class="px-3 py-2">選択肢の整理</td><td class="px-3 py-2">候補リストと優先度表示</td></tr>
   </tbody>
 </table></div>
 
@@ -1666,7 +1666,7 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
     reflect: { label: '内省', content: `
 <h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
 <div class="space-y-8">
-  <div><label class="block font-medium mb-2">Q1. 医師の診察プロセスで最も大きい認知負荷はどれ（内在的/外在的/本質的）？AI はどれを引き受けるべき？</label>
+  <div><label class="block font-medium mb-2">Q1. あなたの業務プロセスで最も大きい認知負荷はどれ（内在的/外在的/本質的）？AI はどれを引き受けるべき？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m10-r1" placeholder="外在的負荷（情報の分散）を減らし、本質的負荷（臨床判断）に集中させる..."></textarea></div>
   <div><label class="block font-medium mb-2">Q2. Claude Code を使っているとき、「AI が生む新たな認知負荷」を感じる場面は？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m10-r2" placeholder="長い出力を読んで判断する負荷、プロンプトを最適化する負荷..."></textarea></div>
@@ -1677,16 +1677,16 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
     connect: { label: '実務接続', content: `
 <h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
 <div class="bg-subtle p-6 rounded-xl mb-8">
-  <h3 class="font-bold mb-3">🏥 MediNavi の認知負荷設計</h3>
-  <p class="text-sm">医師の診療における認知負荷マップを作り、AI が引き受けるべき負荷を特定してください。</p>
+  <h3 class="font-bold mb-3">🤖 AI プロダクトの認知負荷設計</h3>
+  <p class="text-sm">あなたの業務における認知負荷マップを作り、AI が引き受けるべき負荷を特定してください。</p>
 </div>
-<div><label class="block font-medium mb-2">診察の各フェーズ（問診→検査→診断→治療方針→説明）で、どの認知負荷を AI が引き受け、どれを医師に残すべきですか？</label>
-<textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m10-connect" placeholder="問診: 記憶負荷を AI が引き受け（過去の訴えを自動表示）\n検査: 検索負荷を..."></textarea></div>` }
+<div><label class="block font-medium mb-2">業務の各フェーズ（情報収集→分析→判断→実行→報告）で、どの認知負荷を AI が引き受け、どれを人間に残すべきですか？</label>
+<textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m10-connect" placeholder="情報収集: 記憶負荷を AI が引き受け（過去のやり取りを自動表示）\n分析: 検索負荷を..."></textarea></div>` }
   },
   quiz: [
     { question: 'Sweller の CLT で、UI 改善で最も効果的に削減できる負荷はどれ？', options: ['内在的負荷', '外在的負荷', '本質的負荷', '全て同等'], correct: 1, explanation: '外在的負荷は情報提示の不備に起因するため、UI/UX 設計で直接削減できる。内在的負荷はタスク固有、本質的負荷は削減すべきでない。' },
-    { question: '「AI が引き受ける負荷 > AI が新たに生む負荷」の設計原則に違反する例はどれ？', options: ['過去の診療記録を自動サマリー', '50ページの詳細レポートを毎回生成（読む負荷が大きい）', '関連ガイドラインの3行要約', 'アラートを重要度順にソート'], correct: 1, explanation: '大量の出力は「評価する認知負荷」を生む。AI が情報を圧縮・整理して提示することで初めてネットの負荷削減になる。' },
-    { question: 'Cognitive Offloading のリスクとして正しいのはどれ？', options: ['処理速度が低下する', '過度のオフローディングによるスキル劣化', 'ストレージ容量が不足する', 'ネットワーク負荷が増大する'], correct: 1, explanation: 'Risko & Gilbert が指摘: 外部ツールに認知を依存しすぎると、その能力自体が退化する。医療 AI では「AI なしでは診断できない」状態を避ける設計が必要。' }
+    { question: '「AI が引き受ける負荷 > AI が新たに生む負荷」の設計原則に違反する例はどれ？', options: ['過去のやり取りを自動サマリー', '50ページの詳細レポートを毎回生成（読む負荷が大きい）', '関連ドキュメントの3行要約', 'アラートを重要度順にソート'], correct: 1, explanation: '大量の出力は「評価する認知負荷」を生む。AI が情報を圧縮・整理して提示することで初めてネットの負荷削減になる。' },
+    { question: 'Cognitive Offloading のリスクとして正しいのはどれ？', options: ['処理速度が低下する', '過度のオフローディングによるスキル劣化', 'ストレージ容量が不足する', 'ネットワーク負荷が増大する'], correct: 1, explanation: 'Risko & Gilbert が指摘: 外部ツールに認知を依存しすぎると、その能力自体が退化する。「AI なしでは判断できない」状態を避ける設計が必要。' }
   ]
 },
 
@@ -1741,20 +1741,20 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 <div class="space-y-8">
   <div><label class="block font-medium mb-2">Q1. あなたと Claude Code の間の Common Ground は、セッションを重ねるごとにどう変化していますか？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m11-r1" placeholder="MEMORY.md が育つことで共通理解が拡大。ただしセッション切れで断絶する部分も..."></textarea></div>
-  <div><label class="block font-medium mb-2">Q2. 4つの Memory Disclosure パターンのうち、医療 AI に最適なのはどれ？その理由は？</label>
-  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m11-r2" placeholder="Explicit Reference が最適。医療では根拠の明示が必須..."></textarea></div>
-  <div><label class="block font-medium mb-2">Q3. 多職種連携（医師・看護師・薬剤師）における「AI を介した Shared Memory」はどう設計すべき？</label>
-  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m11-r3" placeholder="各職種が記録した情報を AI が統合し、アクセス権限を分けて..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 4つの Memory Disclosure パターンのうち、あなたの AI プロダクトに最適なのはどれ？その理由は？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m11-r2" placeholder="Explicit Reference が最適。重要な判断では根拠の明示が必須..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 多職種チーム（エンジニア・デザイナー・PM）における「AI を介した Shared Memory」はどう設計すべき？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m11-r3" placeholder="各メンバーが記録した情報を AI が統合し、アクセス権限を分けて..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
     connect: { label: '実務接続', content: `
 <h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
 <div class="bg-subtle p-6 rounded-xl mb-8">
-  <h3 class="font-bold mb-3">🏥 医師-AI の Common Ground 設計</h3>
-  <p class="text-sm">MediNavi で医師と AI の Shared Mental Model を構築する仕組みを設計してください。</p>
+  <h3 class="font-bold mb-3">🤖 ユーザー-AI の Common Ground 設計</h3>
+  <p class="text-sm">AI アシスタントとユーザーの Shared Mental Model を構築する仕組みを設計してください。</p>
 </div>
-<div><label class="block font-medium mb-2">医師が「この AI は自分の患者のことをどこまで理解しているか」を常に把握できる UI を設計してください。4つの Disclosure パターンのどれを使いますか？</label>
-<textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m11-connect" placeholder="患者カードのヘッダーに「AI 記憶範囲」アイコン\nクリックで Memory Dashboard..."></textarea></div>` }
+<div><label class="block font-medium mb-2">ユーザーが「この AI は自分のことをどこまで理解しているか」を常に把握できる UI を設計してください。4つの Disclosure パターンのどれを使いますか？</label>
+<textarea class="reflection-textarea w-full h-36 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m11-connect" placeholder="プロフィール画面に「AI 記憶範囲」アイコン\nクリックで Memory Dashboard..."></textarea></div>` }
   },
   quiz: [
     { question: 'Clark の Common Ground Theory で、Grounding の本質はどれ？', options: ['情報を一方的に伝えること', '対話を通じて共有知識を構築・更新するプロセス', 'データベースの共有', '全情報の公開'], correct: 1, explanation: 'Grounding は対話を通じた相互確認のプロセス。「伝えた」だけでなく「理解された」ことの確認まで含む。' },
@@ -1787,8 +1787,8 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
   <div class="border border-border p-5 rounded-lg">
     <div class="flex items-center gap-2 mb-2"><span class="text-lg">🔄</span><strong>1. 文脈継続（Continuity）</strong></div>
     <p class="text-sm mb-2">前回の会話・作業の続きをシームレスに再開。文脈を再構築する手間がゼロ。</p>
-    <p class="text-sm mb-2"><strong>なぜ強力か:</strong> 認知負荷の最大の原因は「文脈の再構築」。久しぶりの患者、中断したプロジェクト、過去の議論の続き — 人間の記憶では限界がある場面で AI が完全な文脈を復元する。</p>
-    <p class="text-sm mb-2"><strong>医療での応用:</strong> 3ヶ月ぶりの再診患者。AI が「前回: HbA1c 7.2%、食事指導を実施、次回検査で改善確認予定」と前回の文脈を瞬時に提示。医師はカルテを遡る時間をゼロにできる。</p>
+    <p class="text-sm mb-2"><strong>なぜ強力か:</strong> 認知負荷の最大の原因は「文脈の再構築」。久しぶりの顧客、中断したプロジェクト、過去の議論の続き — 人間の記憶では限界がある場面で AI が完全な文脈を復元する。</p>
+    <p class="text-sm mb-2"><strong>カスタマーサポートでの応用:</strong> 3ヶ月ぶりに問い合わせてきた顧客。AI が「前回: プラン変更を検討中、料金比較を提示、次回の更新日に再確認予定」と前回の文脈を瞬時に提示。担当者は過去のやり取りを遡る時間をゼロにできる。</p>
     <p class="text-xs text-accent">🤔 この体験で *ユーザーが何を感じるべきか*: 「中断していたことを忘れていい安心感」</p>
   </div>
 
@@ -1796,7 +1796,7 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
     <div class="flex items-center gap-2 mb-2"><span class="text-lg">👤</span><strong>2. 個人化（Personalization）</strong></div>
     <p class="text-sm mb-2">ユーザーの好み・スタイル・習慣を学習して適応。使うほどフィットする。</p>
     <p class="text-sm mb-2"><strong>なぜ強力か:</strong> 意味記憶（ユーザーについての一般化された知識）が蓄積されることで「説明しなくてもわかってくれる」体験が生まれる。毎回の設定・説明コストがゼロに近づく。</p>
-    <p class="text-sm mb-2"><strong>医療での応用:</strong> 医師ごとの診療スタイルを学習。「A先生はエビデンスレベルを重視」「B先生は患者の QOL を優先」→ 推薦の提示方法を自動調整。</p>
+    <p class="text-sm mb-2"><strong>生産性ツールでの応用:</strong> ユーザーごとの作業スタイルを学習。「Aさんは箇条書きで整理するのが好き」「Bさんは図表を多用する」→ 提案の形式を自動調整。</p>
     <p class="text-xs text-accent">🤔 この体験で *ユーザーが何を感じるべきか*: 「自分専用にカスタマイズされている感覚」</p>
   </div>
 
@@ -1804,7 +1804,7 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
     <div class="flex items-center gap-2 mb-2"><span class="text-lg">🔮</span><strong>3. 予測的支援（Anticipation）</strong></div>
     <p class="text-sm mb-2">ユーザーが必要とする情報を、求められる前に先回りして提供。</p>
     <p class="text-sm mb-2"><strong>なぜ強力か:</strong> 展望的記憶（「将来○○が必要になる」という記憶）は人間の記憶で最も脆弱な部分。AI が代わりに「次に何が必要か」を覚えていてくれることの価値は極めて高い。</p>
-    <p class="text-sm mb-2"><strong>医療での応用:</strong> 「この患者は前回の検査から3ヶ月経過。次回のフォローアップ検査の時期です」を診察開始時に自動提示。医師の「次にやるべきこと」の想起負荷を引き受ける。</p>
+    <p class="text-sm mb-2"><strong>プロジェクト管理での応用:</strong> 「このタスクの期限まであと3日。前回のミーティングで決まったアクションアイテムがまだ未完了です」をダッシュボード表示時に自動提示。ユーザーの「次にやるべきこと」の想起負荷を引き受ける。</p>
     <p class="text-xs text-accent">🤔 この体験で *ユーザーが何を感じるべきか*: 「言わなくても気づいてくれる頼もしさ」（ただし過度だと監視感になる → アンチパターン参照）</p>
   </div>
 
@@ -1812,7 +1812,7 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
     <div class="flex items-center gap-2 mb-2"><span class="text-lg">💬</span><strong>4. 関係性構築（Relationship Building）</strong></div>
     <p class="text-sm mb-2">記憶の蓄積が「この AI は自分を理解している」という感覚を生み、長期的な信頼関係に発展。</p>
     <p class="text-sm mb-2"><strong>なぜ強力か:</strong> Shared Mental Model の深化により、コミュニケーションコストが下がり、委任範囲が広がる。「この AI とは長く付き合いたい」というリテンションに直結。</p>
-    <p class="text-sm mb-2"><strong>医療での応用:</strong> 病院全体で導入された AI が、各医師の診療記録と共に成長。転院時に「この AI は私の判断基準を理解している」と感じさせるレベルの個人化。</p>
+    <p class="text-sm mb-2"><strong>業務アシスタントでの応用:</strong> チーム全体で導入された AI が、各メンバーの作業履歴と共に成長。異動時にも「この AI は私の仕事の進め方を理解している」と感じさせるレベルの個人化。</p>
     <p class="text-xs text-accent">🤔 この体験で *ユーザーが何を感じるべきか*: 「一緒に成長してきたパートナー感」</p>
   </div>
 
@@ -1820,15 +1820,15 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
     <div class="flex items-center gap-2 mb-2"><span class="text-lg">📈</span><strong>5. 学習・成長支援（Learning & Growth）</strong></div>
     <p class="text-sm mb-2">ユーザーの成長過程を記憶し、支援レベルを適応的に調整する。</p>
     <p class="text-sm mb-2"><strong>なぜ強力か:</strong> Vygotsky の最近接発達領域（ZPD）: 学習者が「一人ではできないが、支援があればできる」領域こそ学習が起きる。AI がユーザーの現在地を記憶し、ZPD に合わせた支援を提供。</p>
-    <p class="text-sm mb-2"><strong>医療での応用:</strong> 研修医の診断スキル成長に合わせて、最初は詳細な鑑別診断リストを提示 → 経験を積むにつれ「見落としやすい鑑別のみ」に絞る。</p>
+    <p class="text-sm mb-2"><strong>教育 AI での応用:</strong> 学習者のスキル成長に合わせて、最初は詳細な解説とヒントを提示 → 実力がつくにつれ「応用的なチャレンジ問題のみ」に絞る。</p>
     <p class="text-xs text-accent">🤔 この体験で *ユーザーが何を感じるべきか*: 「AI が自分の成長を認めてくれている感覚」</p>
   </div>
 
   <div class="border border-border p-5 rounded-lg">
     <div class="flex items-center gap-2 mb-2"><span class="text-lg">📋</span><strong>6. 説明責任（Accountability）</strong></div>
     <p class="text-sm mb-2">過去の判断・推薦の根拠を記憶から引いて、いつでも説明できる。</p>
-    <p class="text-sm mb-2"><strong>なぜ強力か:</strong> 人間は「なぜそうしたか」を忘れる（ソースモニタリングの失敗）。AI が判断の根拠と経緯を記憶していれば、事後のレビュー・監査・改善が可能になる。医療では法的にも重要。</p>
-    <p class="text-sm mb-2"><strong>医療での応用:</strong> 「この薬剤に変更した理由は、2025/12/15 の検査で腎機能低下を検出し、ガイドライン X の推奨に基づいて減量したため」— 判断のトレーサビリティを AI が担保。</p>
+    <p class="text-sm mb-2"><strong>なぜ強力か:</strong> 人間は「なぜそうしたか」を忘れる（ソースモニタリングの失敗）。AI が判断の根拠と経緯を記憶していれば、事後のレビュー・監査・改善が可能になる。コンプライアンスや品質管理でも重要。</p>
+    <p class="text-sm mb-2"><strong>業務判断での応用:</strong> 「この設定を変更した理由は、2025/12/15 の分析でパフォーマンス低下を検出し、ベストプラクティス X の推奨に基づいて調整したため」— 判断のトレーサビリティを AI が担保。</p>
     <p class="text-xs text-accent">🤔 この体験で *ユーザーが何を感じるべきか*: 「過去の判断を安心して振り返れる安心感」</p>
   </div>
 
@@ -1858,7 +1858,7 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
     <strong class="text-red-700">Over-Personalization（過度な個人化）</strong>
     <p class="text-sm mt-1">偏った提案、フィルターバブル、多様な選択肢の排除。</p>
     <p class="text-xs text-muted mt-2"><strong>原因:</strong> 過去の傾向への過剰適応。<strong>対策:</strong> 「いつもと違う選択肢」を意図的に混ぜる。パーソナライゼーションの強度をユーザーが調整可能にする。</p>
-    <p class="text-xs text-accent mt-1">🤔 <strong>問い:</strong> 医師が「いつもの処方」を選び続ける傾向を AI が強化してしまうリスクは？新しいエビデンスへの気づきをどう確保するか？</p>
+    <p class="text-xs text-accent mt-1">🤔 <strong>問い:</strong> ユーザーが「いつもの選択肢」を選び続ける傾向を AI が強化してしまうリスクは？新しい情報への気づきをどう確保するか？</p>
   </div>
 </div>` },
     reflect: { label: '内省', content: `
@@ -1866,23 +1866,23 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 <div class="space-y-8">
   <div><label class="block font-medium mb-2">Q1. あなたの Claude Code 体験で、6つのパターンのうちどれが最も価値を感じましたか？具体例で。</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m12-r1" placeholder="Continuity が最大。前のセッションの文脈を引き継げるので..."></textarea></div>
-  <div><label class="block font-medium mb-2">Q2. 4つのアンチパターンのうち、医療 AI で最もリスクが高いのはどれ？なぜ？</label>
-  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m12-r2" placeholder="Stale Memory が最も危険。古い検査値に基づく推薦は..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 4つのアンチパターンのうち、AI プロダクトで最もリスクが高いのはどれ？なぜ？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m12-r2" placeholder="Stale Memory が最も危険。古い情報に基づく推薦は..."></textarea></div>
   <div><label class="block font-medium mb-2">Q3. 「Anticipation（予測的支援）」を実現するために、エージェントはどんな記憶を持つ必要がありますか？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m12-r3" placeholder="行動パターンの記憶、スケジュールの記憶、過去の類似状況の記憶..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
     connect: { label: '実務接続', content: `
 <h2 class="text-2xl font-bold mb-6">ドメインに接続する</h2>
-<div class="bg-subtle p-6 rounded-xl mb-8"><h3 class="font-bold mb-3">🏥 MediNavi の記憶 UX パターン</h3>
-<p class="text-sm">6パターンを MediNavi に具体的にマッピングしてください。</p></div>
-<div><label class="block font-medium mb-2">MediNavi で6パターンそれぞれをどう実現しますか？優先順位も含めて。</label>
-<textarea class="reflection-textarea w-full h-48 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m12-connect" placeholder="優先1: Continuity — 患者の診療コンテキスト自動再構築\n優先2: Accountability — 推薦の根拠表示\n..."></textarea></div>` }
+<div class="bg-subtle p-6 rounded-xl mb-8"><h3 class="font-bold mb-3">🤖 あなたの AI プロダクトの記憶 UX パターン</h3>
+<p class="text-sm">6パターンをあなたの AI プロダクト（またはこれから作りたいプロダクト）に具体的にマッピングしてください。</p></div>
+<div><label class="block font-medium mb-2">あなたの AI プロダクトで6パターンそれぞれをどう実現しますか？優先順位も含めて。</label>
+<textarea class="reflection-textarea w-full h-48 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m12-connect" placeholder="優先1: Continuity — ユーザーのコンテキスト自動再構築\n優先2: Accountability — 推薦の根拠表示\n..."></textarea></div>` }
   },
   quiz: [
     { question: '記憶 UX パターンの「Anticipation」の認知科学的基盤はどれ？', options: ['エピソード記憶のみ', '展望的記憶（未来の行動の記憶）+ 文脈手がかり', '手続き記憶', '感覚記憶'], correct: 1, explanation: '予測的支援は「この文脈ではユーザーが次に○○を必要とする」という展望的記憶と、現在の文脈による想起の組み合わせ。' },
     { question: '「Uncanny Memory」アンチパターンの対策として最も適切なのはどれ？', options: ['記憶を隠す', '記憶の出典と理由をユーザーに開示する（Progressive Disclosure）', '記憶量を制限する', '個人情報を一切記憶しない'], correct: 1, explanation: '不気味さの原因は「なぜ覚えているか」が不透明なこと。出典開示により合理性が理解され、不気味さが解消する。' },
-    { question: '医療 AI で最も危険なアンチパターンはどれ？', options: ['Uncanny Memory', 'Stale Memory（古い記憶に基づく不適切な判断）', 'Over-Personalization', 'Privacy Breach'], correct: 1, explanation: '古い検査値や陳腐化した情報に基づく推薦は直接的な医療リスク。記憶の鮮度管理と「情報の更新日」の明示が必須。' }
+    { question: '重要な意思決定を支援する AI で最も危険なアンチパターンはどれ？', options: ['Uncanny Memory', 'Stale Memory（古い記憶に基づく不適切な判断）', 'Over-Personalization', 'Privacy Breach'], correct: 1, explanation: '古いデータや陳腐化した情報に基づく推薦は直接的なリスクにつながる。記憶の鮮度管理と「情報の更新日」の明示が必須。' }
   ]
 },
 
@@ -1976,7 +1976,7 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 <div class="space-y-8">
   <div><label class="block font-medium mb-2">Q1. あなたの6層設計を4次元フレームワークで評価してください。各次元で何が足りていて何が足りない？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m13-r1" placeholder="符号化: 手動でメタデータ付与 → 自動化が必要\n保持: L2-L5で分離済み → OK\n忘却: TTLルールあるが粗い\n想起: L1ランキングのみ → スコアリング導入が必要"></textarea></div>
-  <div><label class="block font-medium mb-2">Q2. 4原則のうち、HP プロダクトで最も設計が難しいのはどれ？なぜ？</label>
+  <div><label class="block font-medium mb-2">Q2. 4原則のうち、AI プロダクトで最も設計が難しいのはどれ？なぜ？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m13-r2" placeholder="忘却の設計が最も難しい。医療データは法的に保存義務がある一方で..."></textarea></div>
   <div><label class="block font-medium mb-2">Q3. 「Proactive Recall」を実現するには、どんな技術的基盤が必要ですか？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m13-r3" placeholder="現在の文脈の自動分析、記憶との類似度計算、表示タイミングの最適化..."></textarea></div>
@@ -1997,70 +1997,70 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 },
 
 // ────────────────────────────────────────────────────────────
-// Module 14: HP Product Application
+// Module 14: Product Application Exercise
 // ────────────────────────────────────────────────────────────
 {
-  id: 'hp-product-app',
+  id: 'product-app',
   num: '15',
   phase: 4,
-  title: 'HP プロダクトへの応用設計',
-  subtitle: '医師の診療文脈を記憶する UX',
-  icon: '🏥',
+  title: 'プロダクト応用演習',
+  subtitle: 'ユーザーの文脈を記憶する AI の UX 設計',
+  icon: '🎯',
   tabs: {
     concept: { label: '概念', content: `
-<h2 class="text-2xl font-bold mb-6">医療 AI の記憶 UX を設計する</h2>
+<h2 class="text-2xl font-bold mb-6">AI プロダクトの記憶 UX を設計する</h2>
 <div class="concept-box p-5 rounded-r-lg mb-8">
   <p class="font-medium mb-2">Core Idea</p>
-  <p>Phase 1-4 の全てを HP プロダクト（MediNavi 等）に具体化。医師の意思決定を支援する「記憶を持つ AI」の UX 設計。</p>
+  <p>Phase 1-4 の全てを具体的な AI プロダクトに適用する演習。ユーザーの意思決定を支援する「記憶を持つ AI」の UX 設計を実践する。</p>
 </div>
 
-<h3 class="text-lg font-bold mb-4">医療における記憶の4タイプ</h3>
+<h3 class="text-lg font-bold mb-4">AI プロダクトにおける記憶の4タイプ</h3>
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">📅 Patient Episodic</div><p class="text-xs text-muted">患者の診療エピソード（前回の訴え、検査の経緯、治療反応）</p></div>
-  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">📚 Medical Semantic</div><p class="text-xs text-muted">医学知識（ガイドライン、薬剤情報、エビデンス）</p></div>
-  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">🔧 Clinical Procedural</div><p class="text-xs text-muted">診療パターン（問診の進め方、検査手順）</p></div>
-  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">🏢 Institutional</div><p class="text-xs text-muted">組織の暗黙知（紹介元、連携状況）</p></div>
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">📅 User Episodic</div><p class="text-xs text-muted">ユーザーとのやり取りのエピソード（過去の質問、リクエスト、フィードバック）</p></div>
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">📚 Domain Semantic</div><p class="text-xs text-muted">ドメイン知識（マニュアル、FAQ、ベストプラクティス）</p></div>
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">🔧 Workflow Procedural</div><p class="text-xs text-muted">業務パターン（タスクの進め方、承認フロー）</p></div>
+  <div class="bg-subtle p-4 rounded-lg"><div class="font-bold text-sm mb-1">🏢 Organizational</div><p class="text-xs text-muted">組織の暗黙知（チーム構成、連携関係）</p></div>
 </div>
 
 <h3 class="text-lg font-bold mb-4">AI が記憶で支援する意思決定</h3>
 <ul class="text-sm space-y-2 mb-6">
-  <li><strong>情報統合</strong>: 複数回の診察、複数の検査、複数診療科の情報を統合</li>
-  <li><strong>縦断的追跡</strong>: 「3ヶ月前と比べてこの検査値がどう変化したか」</li>
-  <li><strong>コンテキスト再構築</strong>: 久しぶりの患者の「前回までの経緯」を瞬時にサマリー</li>
-  <li><strong>エビデンスマッチング</strong>: 患者の状態に最適なガイドラインの自動提示</li>
+  <li><strong>情報統合</strong>: 複数回のやり取り、複数のデータソース、複数のチャネルからの情報を統合</li>
+  <li><strong>縦断的追跡</strong>: 「3ヶ月前と比べてこの指標がどう変化したか」</li>
+  <li><strong>コンテキスト再構築</strong>: 久しぶりのユーザーの「前回までの経緯」を瞬時にサマリー</li>
+  <li><strong>ナレッジマッチング</strong>: ユーザーの状況に最適な情報やベストプラクティスの自動提示</li>
 </ul>
 
 <h3 class="text-lg font-bold mb-4">設計チェックリスト</h3>
 <div class="space-y-2 mb-6 text-sm">
   <div class="flex items-start gap-2"><span>☐</span> 記憶の出典と鮮度が常に表示されるか？</div>
-  <div class="flex items-start gap-2"><span>☐</span> 医師が記憶を確認・修正できるか？</div>
+  <div class="flex items-start gap-2"><span>☐</span> ユーザーが記憶を確認・修正できるか？</div>
   <div class="flex items-start gap-2"><span>☐</span> 不確実性が明示されるか？</div>
   <div class="flex items-start gap-2"><span>☐</span> Override が容易か？</div>
-  <div class="flex items-start gap-2"><span>☐</span> 多職種間での記憶共有が適切にスコーピングされるか？</div>
-  <div class="flex items-start gap-2"><span>☐</span> 患者のプライバシーが保護されるか？</div>
+  <div class="flex items-start gap-2"><span>☐</span> チーム間での記憶共有が適切にスコーピングされるか？</div>
+  <div class="flex items-start gap-2"><span>☐</span> ユーザーのプライバシーが保護されるか？</div>
 </div>` },
     reflect: { label: '内省', content: `
-<h2 class="text-2xl font-bold mb-6">総合演習: MediNavi の記憶 UX 設計</h2>
+<h2 class="text-2xl font-bold mb-6">総合演習: AI プロダクトの記憶 UX 設計</h2>
 <div class="space-y-8">
-  <div><label class="block font-medium mb-2">Q1. 医師が新患を診るとき、AI はどの「記憶タイプ」を最初に提示すべきですか？</label>
-  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m14-r1" placeholder="紹介状の内容（Institutional）+ 既往歴サマリー（Patient Episodic）"></textarea></div>
-  <div><label class="block font-medium mb-2">Q2. 再診患者の場合はどう変わりますか？</label>
+  <div><label class="block font-medium mb-2">Q1. 新規ユーザーが AI アシスタントを初めて使うとき、AI はどの「記憶タイプ」を最初に活用すべきですか？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m14-r1" placeholder="ドメイン知識（Domain Semantic）+ 組織情報（Organizational）"></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. リピートユーザーの場合はどう変わりますか？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m14-r2" placeholder="前回からの変化のハイライト + 未解決の課題 + 次のアクション"></textarea></div>
-  <div><label class="block font-medium mb-2">Q3. 全16モジュールの学びを統合して、MediNavi の「記憶ビジョン」を1段落で書いてください。</label>
-  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m14-r3" placeholder="MediNavi は医師のワーキングメモリを拡張し、患者のエピソード記憶を..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q3. 全16モジュールの学びを統合して、あなたの AI プロダクトの「記憶ビジョン」を1段落で書いてください。</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m14-r3" placeholder="この AI はユーザーのワーキングメモリを拡張し、過去のエピソード記憶を..."></textarea></div>
 </div>` },
     quiz: { label: '確認テスト', content: 'quiz' },
     connect: { label: '実務接続', content: `
 <h2 class="text-2xl font-bold mb-6">最終課題</h2>
-<div class="bg-subtle p-6 rounded-xl mb-8"><h3 class="font-bold mb-3">🏥 MediNavi Memory UX 設計書</h3>
+<div class="bg-subtle p-6 rounded-xl mb-8"><h3 class="font-bold mb-3">🎯 AI プロダクト Memory UX 設計書</h3>
 <p class="text-sm">全モジュールの知識を統合した設計書を書いてください。</p></div>
-<div><label class="block font-medium mb-2">MediNavi の記憶アーキテクチャ設計書（記憶タイプ、符号化方法、保持/忘却ポリシー、想起方法、信頼設計、認知負荷配慮）を書いてください。</label>
-<textarea class="reflection-textarea w-full h-64 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m14-connect" placeholder="## MediNavi Memory Architecture v1.0\n\n### 記憶タイプと保持ポリシー\n- Patient Episodic: 無期限保持、最終アクセスから1年でアーカイブ\n..."></textarea></div>` }
+<div><label class="block font-medium mb-2">あなたの AI プロダクトの記憶アーキテクチャ設計書（記憶タイプ、符号化方法、保持/忘却ポリシー、想起方法、信頼設計、認知負荷配慮）を書いてください。</label>
+<textarea class="reflection-textarea w-full h-64 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m14-connect" placeholder="## AI Product Memory Architecture v1.0\n\n### 記憶タイプと保持ポリシー\n- User Episodic: 無期限保持、最終アクセスから1年でアーカイブ\n..."></textarea></div>` }
   },
   quiz: [
-    { question: '医療 AI の記憶で「縦断的追跡」が特に重要な理由はどれ？', options: ['データ量が多いから', '慢性疾患では時間経過に伴う変化が診断と治療の鍵だから', 'レポートが長くなるから', '法的要件だから'], correct: 1, explanation: '糖尿病、高血圧、がんなどの慢性疾患では「3ヶ月前と比べてどう変化したか」が重要な臨床判断の根拠。AI の記憶で自動追跡できると大きな価値。' },
-    { question: '多職種連携での記憶共有で最も重要な設計原則はどれ？', options: ['全職種に全情報を公開', 'アクセス権限のスコーピング（職種・役割に応じた閲覧範囲）', '記憶の暗号化のみ', '記憶の共有を禁止'], correct: 1, explanation: '看護師が知るべき情報と医師が知るべき情報は異なる。患者のプライバシーも考慮し、適切なスコーピングが必要。' },
-    { question: '医師にとって AI の記憶が最も価値を生む場面はどれ？', options: ['初診時の基本問診', '久しぶりの再診で前回までの経緯を瞬時にサマリーする場面', '定期検査のオーダー', '退院サマリーの作成'], correct: 1, explanation: 'Module 11（認知負荷）で学んだ通り、文脈再構築の認知負荷は大きい。AI が過去の診療文脈を即座にサマリーすることで、医師は本質的な臨床判断に集中できる。' }
+    { question: 'AI プロダクトの記憶で「縦断的追跡」が特に重要な理由はどれ？', options: ['データ量が多いから', '長期利用では時間経過に伴う変化がユーザー支援の鍵だから', 'レポートが長くなるから', '法的要件だから'], correct: 1, explanation: 'サブスクリプション、学習、プロジェクト管理など長期サービスでは「3ヶ月前と比べてどう変化したか」が重要な判断の根拠。AI の記憶で自動追跡できると大きな価値。' },
+    { question: 'チーム連携での記憶共有で最も重要な設計原則はどれ？', options: ['全メンバーに全情報を公開', 'アクセス権限のスコーピング（役割に応じた閲覧範囲）', '記憶の暗号化のみ', '記憶の共有を禁止'], correct: 1, explanation: 'メンバーの役割によって必要な情報は異なる。プライバシーも考慮し、適切なスコーピングが必要。' },
+    { question: 'ユーザーにとって AI の記憶が最も価値を生む場面はどれ？', options: ['初回利用時の基本案内', '久しぶりの利用で前回までの経緯を瞬時にサマリーする場面', '定型作業の自動実行', 'レポートの自動生成'], correct: 1, explanation: 'Module 11（認知負荷）で学んだ通り、文脈再構築の認知負荷は大きい。AI が過去のやり取りの文脈を即座にサマリーすることで、ユーザーは本質的な判断に集中できる。' }
   ]
 },
 
@@ -2105,15 +2105,15 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 </div>
 
 <div class="analogy-box p-5 rounded-r-lg mb-6">
-  <p class="font-medium mb-2">🔗 Ubie の組織への示唆</p>
-  <p class="text-sm">Ubie 社内で複数の Claude Code インスタンスが稼働している場合、それぞれの MEMORY.md は「個人の記憶」。これらを統合する「組織記憶」の仕組み（共有 Plugin、共有ナレッジベース）が Transactive Memory System に対応。</p>
+  <p class="font-medium mb-2">🔗 組織への示唆</p>
+  <p class="text-sm">社内で複数の AI エージェントが稼働している場合、それぞれの記憶ストアは「個人の記憶」。これらを統合する「組織記憶」の仕組み（共有プラグイン、共有ナレッジベース）が Transactive Memory System に対応。</p>
 </div>` },
     reflect: { label: '内省', content: `
 <h2 class="text-2xl font-bold mb-6">自分の言葉で説明してみよう</h2>
 <div class="space-y-8">
-  <div><label class="block font-medium mb-2">Q1. Transactive Memory System を Ubie のホラクラシー組織に当てはめると？</label>
-  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-r1" placeholder="各サークルが Specialization を持ち、ロールが Coordination を担い..."></textarea></div>
-  <div><label class="block font-medium mb-2">Q2. 4つの設計パターンのうち、HP プロダクトの多職種連携に最適なのはどれ？</label>
+  <div><label class="block font-medium mb-2">Q1. Transactive Memory System をあなたの組織に当てはめると？</label>
+  <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-r1" placeholder="各チームが Specialization を持ち、リーダーが Coordination を担い..."></textarea></div>
+  <div><label class="block font-medium mb-2">Q2. 4つの設計パターンのうち、あなたのプロダクトのチーム連携に最適なのはどれ？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-r2" placeholder="Federated Memory が最適。各職種の専門記憶は独立させつつ..."></textarea></div>
   <div><label class="block font-medium mb-2">Q3. 全16モジュールを学んだ今、「記憶を持つ AI エージェント」の最も重要な設計原則を1つだけ選ぶとしたら？</label>
   <textarea class="reflection-textarea w-full h-28 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-r3" placeholder="記憶の透明性。ユーザーがエージェントの記憶を理解し制御できることが全ての基盤..."></textarea></div>
@@ -2122,13 +2122,13 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
     connect: { label: '実務接続', content: `
 <h2 class="text-2xl font-bold mb-6">最終ドメイン接続</h2>
 <div class="bg-subtle p-6 rounded-xl mb-8"><h3 class="font-bold mb-3">🌐 全体統合: 記憶を持つ AI エコシステム</h3>
-<p class="text-sm">全16モジュールの学びを統合し、HP プロダクト × Claude Code × 組織の3つのレイヤーで記憶設計を考えてください。</p></div>
-<div><label class="block font-medium mb-2">「記憶のエコシステム」設計書: HP プロダクト（患者記憶）、Claude Code（業務記憶）、組織（共有記憶）の3層がどう連携するかを記述してください。</label>
-<textarea class="reflection-textarea w-full h-64 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-connect" placeholder="## Memory Ecosystem Design\n\n### Layer 1: HP Product Memory\n...\n### Layer 2: Claude Code Memory\n...\n### Layer 3: Organizational Memory\n..."></textarea></div>` }
+<p class="text-sm">全16モジュールの学びを統合し、AI プロダクト × 個人エージェント × 組織の3つのレイヤーで記憶設計を考えてください。</p></div>
+<div><label class="block font-medium mb-2">「記憶のエコシステム」設計書: AI プロダクト（ユーザー記憶）、個人エージェント（業務記憶）、組織（共有記憶）の3層がどう連携するかを記述してください。</label>
+<textarea class="reflection-textarea w-full h-64 p-4 border border-border rounded-lg bg-white text-sm resize-y" data-key="m15-connect" placeholder="## Memory Ecosystem Design\n\n### Layer 1: AI Product Memory\n...\n### Layer 2: Personal Agent Memory\n...\n### Layer 3: Organizational Memory\n..."></textarea></div>` }
   },
   quiz: [
     { question: 'Wegner の Transactive Memory System の核心はどれ？', options: ['全員が全てを記憶する', '「誰が何を知っているか」の知識を共有する', '記憶を中央データベースに集約する', '記憶を暗号化して共有する'], correct: 1, explanation: 'TMS の核心は「メタ知識の共有」。誰に聞けば何がわかるかを知っていること自体がシステムの知性を高める。' },
-    { question: '医療の多職種連携に最適な記憶共有パターンはどれ？', options: ['Shared Memory Pool（全共有）', 'Federated Memory（独立+選択的共有）', 'Hierarchical Memory（階層管理）', 'Blackboard Architecture（黒板共有）'], correct: 1, explanation: '各職種の専門記憶は独立させつつ、患者ケアに必要な情報のみを選択的に共有。プライバシーと専門性を両立する Federated が最適。' },
+    { question: 'チームの多職種連携に最適な記憶共有パターンはどれ？', options: ['Shared Memory Pool（全共有）', 'Federated Memory（独立+選択的共有）', 'Hierarchical Memory（階層管理）', 'Blackboard Architecture（黒板共有）'], correct: 1, explanation: '各メンバーの専門記憶は独立させつつ、プロジェクトに必要な情報のみを選択的に共有。プライバシーと専門性を両立する Federated が最適。' },
     { question: '組織記憶が「個人の記憶の総和以上」になる理由はどれ？', options: ['データ量が多いから', '構造化・手続き化・文化への埋め込みにより個人を超えた知識が保持されるから', '全員が同じ記憶を持つから', 'バックアップがあるから'], correct: 1, explanation: 'Walsh & Ungson: 組織記憶は個人の記憶だけでなく、手続き・ルール・文化・構造にも埋め込まれ、個人が離れても組織として知識が保持される。' }
   ]
 }
