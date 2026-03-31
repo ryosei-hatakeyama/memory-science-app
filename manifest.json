@@ -1,0 +1,19 @@
+{
+  "name": "Memory Science for Agent Design",
+  "short_name": "記憶の科学",
+  "description": "認知科学 × AI 技術 × Agentic UX を横断して学ぶ学習アプリ",
+  "start_url": "/memory-science-app/",
+  "scope": "/memory-science-app/",
+  "display": "standalone",
+  "background_color": "#faf9f7",
+  "theme_color": "#1a1a2e",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
