@@ -3,24 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>
-(function(){
-  const PASS_HASH = 'fdb2620ed871210faf179386c20fdb3c7a07cc1f1fe05673c90f16feb7abda70';
-  async function sha256(msg){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(msg));return[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');}
-  const stored=sessionStorage.getItem('ml-auth');
-  if(stored===PASS_HASH)return;
-  document.addEventListener('DOMContentLoaded',function(){
-    document.body.innerHTML='';document.body.style.cssText='display:flex;align-items:center;justify-content:center;min-height:100vh;background:#faf9f7;font-family:system-ui,sans-serif;';
-    const d=document.createElement('div');d.style.cssText='text-align:center;max-width:320px;';
-    d.innerHTML='<div style="font-size:2rem;margin-bottom:1rem">🧠</div><h1 style="font-size:1.1rem;font-weight:700;margin-bottom:.5rem">Memory Science for Agent Design</h1><p style="font-size:.8rem;color:#8a8278;margin-bottom:1rem">限定公開 — パスワードを入力してください</p><p style="font-size:.7rem;color:#b0a89e;margin-bottom:1.5rem">学習の進捗はパスワードごとに保存されます。<br>同じパスワードなら別の端末でも続きから学べます。</p><input id="pw" type="password" placeholder="パスワード" style="width:100%;padding:.6rem 1rem;border:1px solid #e2ddd8;border-radius:8px;font-size:.9rem;margin-bottom:.75rem;outline:none;background:white"><br><button id="go" style="width:100%;padding:.6rem;background:#e07a5f;color:white;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:500">入る</button><p id="err" style="color:#d44;font-size:.75rem;margin-top:.5rem;display:none">パスワードが違います</p>';
-    document.body.appendChild(d);
-    const pw=document.getElementById('pw'),go=document.getElementById('go'),err=document.getElementById('err');
-    async function check(){const h=await sha256(pw.value);if(h===PASS_HASH){sessionStorage.setItem('ml-auth',h);location.reload();}else{err.style.display='block';pw.value='';pw.focus();}}
-    go.onclick=check;pw.onkeydown=function(e){if(e.key==='Enter')check();};pw.focus();
-  });
-  document.write('<style>header,nav,main{display:none!important}</style>');
-})();
-</script>
+
 <title>Memory Science for Agent Design</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -1925,8 +1908,9 @@ LLM: "DPC制度の問題点は主に3点あります。第一に..."</pre>
 // パスワードハッシュの先頭16文字をユーザー ID として使用。
 // パスワードが異なれば別の ID になるので、学習データが他人と混ざらない。
 function getUserId() {
-  const hash = sessionStorage.getItem('ml-auth') || 'anonymous';
-  return hash.substring(0, 16);
+  let id = localStorage.getItem('ml-user-id');
+  if (!id) { id = crypto.randomUUID().replace(/-/g,'').substring(0,16); localStorage.setItem('ml-user-id', id); }
+  return id;
 }
 const STATE_KEY = 'memory-learning-app-state-' + getUserId();
 const DEFAULT_STATE = { currentModule: -1, currentTab: 'concept', reflections: {}, quizResults: {}, completedModules: [], followUps: {} };
